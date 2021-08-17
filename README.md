@@ -8,13 +8,12 @@ Fügen Sie ihren Projektnamen hinzu
 - Franziska Reuschenbach 
 
 # Featureliste
-UNSER PROJEKT: Plan 
-
+UNSER PROJEKT: Plan
 Zeitlimit (E)
--First-Person-Kamera (E)
--Skybox (N)
--zufällige Generation der Wohnung (N)
--Kollisionserkennung, Interaktionen mit Objekten (F)
--“alternative Lichtumgebungen” (Alle irgendwie)
--“visuelle Filter” (Alle irgendwie)
+First-Person-Kamera (E)
+Skybox (N)
+zufällige Generation der Wohnung (N)
+Kollisionserkennung, Interaktionen mit Objekten (F)
+“alternative Lichtumgebungen” (Alle irgendwie)
+“visuelle Filter” (Alle irgendwie)
 

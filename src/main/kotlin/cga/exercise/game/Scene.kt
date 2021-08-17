@@ -35,10 +35,6 @@ class Scene(private val window: GameWindow) {
 
     private var pointLight : PointLight
     private var spotLight : SpotLight
-    private var corner1 : PointLight
-    private var corner2 : PointLight
-    private var corner3 : PointLight
-    private var corner4 : PointLight
 
     private var oldMousePosX = -1.0
     //private var oldMousePosY = -1.0
@@ -85,10 +81,6 @@ class Scene(private val window: GameWindow) {
         //Lights
         pointLight = PointLight(camera.getWorldPosition(), Vector3f(1.0f))
         spotLight = SpotLight(Vector3f(0.0f, 1.0f, -2.0f), Vector3f(1.0f))
-        corner1 = PointLight(Vector3f(20.0f,4.0f,20.0f), Vector3f(1.0f, 0.0f, 1.0f), Vector3f(0.7f, 0.3f, 0.0f))
-        corner2 = PointLight(Vector3f(-20.0f,4.0f,20.0f), Vector3f(1.0f, 1.0f, 0.0f), Vector3f(0.7f, 0.3f, 0.0f))
-        corner3 = PointLight(Vector3f(20.0f,4.0f,-20.0f), Vector3f(0.0f, 1.0f, 1.0f), Vector3f(0.7f, 0.3f, 0.0f))
-        corner4 = PointLight(Vector3f(-20.0f,4.0f,-20.0f), Vector3f(1.0f, 0.5f, 0.5f), Vector3f(0.7f, 0.3f, 0.0f))
 
         //Transform
         pointLight.translateLocal(Vector3f(0.0f, 4.0f, 0.0f))
@@ -127,28 +119,6 @@ class Scene(private val window: GameWindow) {
         spotLight.bind(staticShader, "mCycleSpot", camera.getCalculateViewMatrix())
         //spotLight.lightCol = Vector3f(abs(sin(t / 14)), abs(sin(t / 8)), abs(sin(t / 6)))
 
-        corner1.bind(staticShader, "corner")
-        corner2.bind(staticShader, "corner2")
-        corner3.bind(staticShader, "corner3")
-        corner4.bind(staticShader, "corner4")
-
-        //PartyLights
-        //corner4.lightCol = Vector3f(abs(sin(t / 20)), abs(sin(t / 2)), abs(sin(t / 3)))
-        //corner3.lightCol = Vector3f(abs(sin(t / 21)), abs(sin(t / 4)), abs(sin(t / 3)))
-        //corner2.lightCol = Vector3f(abs(sin(t /15)), abs(sin(t / 1)), abs(sin(t / 4)))
-        //corner1.lightCol = Vector3f(abs(sin(t / 22)), abs(sin(t / 3)), abs(sin(t / 1)))
-
-        //RaveLights
-        //corner4.lightCol = Vector3f(abs(tan(t / 1)), abs(tan(t / 2)), abs(tan(t / 3)))
-        //corner3.lightCol = Vector3f(abs(tan(t / 1)), abs(tan(t / 2)), abs(tan(t / 3)))
-        //corner2.lightCol = Vector3f(abs(tan(t / 1)), abs(tan(t / 2)), abs(tan(t / 3)))
-        //corner1.lightCol = Vector3f(abs(tan(t / 1)), abs(tan(t / 2)), abs(tan(t / 3)))
-
-        //ChillLight
-        //corner4.lightCol = Vector3f(abs(cos(t / 1)), abs(cos(t / 2)), abs(cos(t / 3)))
-        //corner3.lightCol = Vector3f(abs(cos(t / 1)), abs(cos(t / 2)), abs(cos(t / 3)))
-        //corner2.lightCol = Vector3f(abs(cos(t / 1)), abs(cos(t / 2)), abs(cos(t / 3)))
-        //corner1.lightCol = Vector3f(abs(cos(t / 1)), abs(cos(t / 2)), abs(cos(t / 3)))
     }
 
     fun update(dt: Float, t: Float) {

@@ -99,13 +99,13 @@ class Scene(private val window: GameWindow) {
 
     fun setTimer(t: Float){
         if ( window.currentTime >= t){
-            window.quit()
+            cleanup()
         }
     }
 
     fun render(dt: Float, t: Float) { //-> t == window.currentTime
         println(t)
-        setTimer(210f) //3Min
+        setTimer(240f) //4Min
 
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
@@ -162,6 +162,6 @@ class Scene(private val window: GameWindow) {
     }
 
     fun cleanup() {
-
+        window.quit()
     }
 }

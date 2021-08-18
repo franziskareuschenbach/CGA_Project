@@ -37,7 +37,7 @@ class Scene(private val window: GameWindow) {
     private var spotLight : SpotLight
 
     private var oldMousePosX = -1.0
-    //private var oldMousePosY = -1.0
+    private var oldMousePosY = -1.0
     private var bool = false
 
     //scene setup
@@ -89,8 +89,8 @@ class Scene(private val window: GameWindow) {
         mCycle.scaleLocal(Vector3f(0.8f))
 
         //Camera
-        camera.rotateLocal(Math.toRadians(-40.0f), 0.0f, 0.0f)              //-20 Grad in Bogenmaß umgerechnet-0.34f
-        camera.translateLocal(Vector3f(0.0f, 0.0f, 4.0f))
+        //camera.rotateLocal(Math.toRadians(-40.0f), 0.0f, 0.0f)              //-20 Grad in Bogenmaß umgerechnet-0.34f
+        camera.translateLocal(Vector3f(0.0f, 2.0f, 4.0f))
 
         //Parent
         camera.parent = mCycle
@@ -102,10 +102,7 @@ class Scene(private val window: GameWindow) {
     fun render(dt: Float, t: Float) {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        //staticShader.setUniform("col", Vector3f(1.0f, 0.0f, 0.0f))
-        //staticShader.setUniform("col", Vector3f(1.0f, 1.0f, 1.0f)) //Weiss
         staticShader.setUniform("col", Vector3f(0.4235f, 0.4745f, 0.5804f)) //Paynes Grey
-        //staticShader.setUniform("col", Vector3f(abs(sin(t / 5)), abs(sin(t / 3)), abs(sin(t / 2))))
 
         camera.bind(staticShader)
         ground.render(staticShader)
@@ -117,8 +114,6 @@ class Scene(private val window: GameWindow) {
         pointLight.lightCol = Vector3f(abs(sin(t / 1)), abs(sin(t / 3)), abs(sin(t / 2)))
 
         spotLight.bind(staticShader, "mCycleSpot", camera.getCalculateViewMatrix())
-        //spotLight.lightCol = Vector3f(abs(sin(t / 14)), abs(sin(t / 8)), abs(sin(t / 6)))
-
     }
 
     fun update(dt: Float, t: Float) {
@@ -147,14 +142,15 @@ class Scene(private val window: GameWindow) {
 
     fun onMouseMove(xpos: Double, ypos: Double) {
         val deltaX = xpos - oldMousePosX
-        //val deltaY = ypos - oldMousePosY
+        val deltaY = ypos - oldMousePosY
 
         oldMousePosX = xpos
-        //oldMousePosY = ypos
+        oldMousePosY = ypos
 
-        if (bool)
-            camera.rotateAroundPoint(0.0f, Math.toRadians(deltaX.toFloat() * 0.02f) , //0.002 ist viel zu unempfindlich
-                                    0.0f, Vector3f(0.0f))
+        if (bool) {
+            camera.rotateAroundPoint(0.0f, -Math.toRadians(deltaX.toFloat() * 0.02f) ,0.0f, Vector3f(0.0f))
+            camera.rotateLocal(-Math.toRadians(deltaY.toFloat() * 0.04f),0.0f, 0.0f)
+        }
         bool = true
     }
 

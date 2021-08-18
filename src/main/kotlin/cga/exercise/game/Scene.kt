@@ -18,6 +18,7 @@ import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL30.*
 import java.lang.IllegalArgumentException
 import kotlin.math.*
+import kotlin.system.exitProcess
 
 /**
  * Created by Fabian on 16.09.2017.
@@ -52,14 +53,12 @@ class Scene(private val window: GameWindow) {
         glEnable(GL_DEPTH_TEST); GLError.checkThrow()
         glDepthFunc(GL_LESS); GLError.checkThrow()
 
-
         /**Create the mesh**/
         val stride = 8 * 4
         val attrPos = VertexAttribute(0,3,GL_FLOAT, stride, 0)        //position
         val attrTC = VertexAttribute(1,2,GL_FLOAT, stride, 3 * 4)     //textureCoordinate
         val attrNorm = VertexAttribute(2,3, GL_FLOAT, stride, 5 * 4)  //normal
         val vertexAttributes = arrayOf<VertexAttribute>(attrPos, attrTC, attrNorm)
-
 
         //Material
         val texture_emit = Texture2D("assets/textures/ground_emit.png", true)
@@ -89,7 +88,6 @@ class Scene(private val window: GameWindow) {
         mCycle.scaleLocal(Vector3f(0.8f))
 
         //Camera
-        //camera.rotateLocal(Math.toRadians(-40.0f), 0.0f, 0.0f)              //-20 Grad in Bogenmaß umgerechnet-0.34f
         camera.translateLocal(Vector3f(0.0f, 2.0f, 4.0f))
 
         //Parent
@@ -99,7 +97,16 @@ class Scene(private val window: GameWindow) {
 
     }
 
-    fun render(dt: Float, t: Float) {
+    fun setTimer(t: Float){
+        if ( window.currentTime >= t){
+            window.quit()
+        }
+    }
+
+    fun render(dt: Float, t: Float) { //-> t == window.currentTime
+        println(t)
+        setTimer(210f) //3Min
+
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         staticShader.setUniform("col", Vector3f(0.4235f, 0.4745f, 0.5804f)) //Paynes Grey
@@ -154,5 +161,7 @@ class Scene(private val window: GameWindow) {
         bool = true
     }
 
-    fun cleanup() {}
+    fun cleanup() {
+
+    }
 }

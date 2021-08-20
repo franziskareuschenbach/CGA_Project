@@ -5,20 +5,15 @@ import cga.exercise.components.geometry.Material
 import cga.exercise.components.geometry.Mesh
 import cga.exercise.components.geometry.Renderable
 import cga.exercise.components.geometry.VertexAttribute
-import cga.exercise.components.light.PointLight
 import cga.exercise.components.light.SpotLight
 import cga.exercise.components.shader.ShaderProgram
 import cga.exercise.components.texture.Texture2D
 import cga.framework.GLError
 import cga.framework.GameWindow
-import cga.framework.ModelLoader
 import cga.framework.OBJLoader
 import org.joml.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL30.*
-import java.lang.IllegalArgumentException
-import kotlin.math.*
-import kotlin.system.exitProcess
 
 /**
  * Created by Fabian on 16.09.2017.
@@ -28,13 +23,12 @@ class Scene(private val window: GameWindow) {
 
     private var groundMesh : Mesh
 
-    private var mCycle = ModelLoader.loadModel("assets/Light Cycle/Light Cycle/HQ_Movie cycle.obj", Math.toRadians(-90f),
-                                                Math.toRadians(90f),0f) ?: throw IllegalArgumentException("no model.")
+    private var bodyMesh : Mesh
+    private var body = Renderable()
 
     private var ground = Renderable()
     private var camera = TronCamera()
 
-    private var pointLight : PointLight
     private var spotLight : SpotLight
 
     private var oldMousePosX = -1.0
@@ -77,29 +71,32 @@ class Scene(private val window: GameWindow) {
         groundMesh = Mesh(groundObj.vertexData, groundObj.indexData, vertexAttributes, groundMaterial)
         ground.list.add(groundMesh)
 
+        val resBody = OBJLoader.loadOBJ("assets/models/kreis.obj")
+        val bodyObj = resBody.objects[0].meshes[0]
+        bodyMesh = Mesh(bodyObj.vertexData, bodyObj.indexData, vertexAttributes)
+        body.list.add(bodyMesh)
+
         //Lights
-        pointLight = PointLight(camera.getWorldPosition(), Vector3f(1.0f))
         spotLight = SpotLight(Vector3f(0.0f, 1.0f, -2.0f), Vector3f(1.0f))
 
         //Transform
-        pointLight.translateLocal(Vector3f(0.0f, 4.0f, 0.0f))
         spotLight.rotateLocal(Math.toRadians(-10.0f), Math.PI.toFloat(), 0.0f) //PI??
 
-        mCycle.scaleLocal(Vector3f(0.8f))
+        body.translateLocal(Vector3f(0.0f, 1.0f, 0.0f))
 
         //Camera
-        camera.translateLocal(Vector3f(0.0f, 2.0f, 4.0f))
+        camera.translateLocal(Vector3f(0.0f, 1.0f, 0.0f))
 
         //Parent
-        camera.parent = mCycle
-        pointLight.parent = mCycle
-        spotLight.parent = mCycle
+        camera.parent = body
+        spotLight.parent = body
 
     }
 
     fun setTimer(t: Float){
         if ( window.currentTime >= t){
             cleanup()
+            println("Du hast zu lange gebraucht! Du bist gefeuert!!!!")
         }
     }
 
@@ -114,35 +111,23 @@ class Scene(private val window: GameWindow) {
         camera.bind(staticShader)
         ground.render(staticShader)
 
-        staticShader.setUniform("col", Vector3f(abs(sin(t / 1)), abs(sin(t / 3)), abs(sin(t / 2))))
-        mCycle.render(staticShader)
-
-        pointLight.bind(staticShader, "mCyclePoint")
-        pointLight.lightCol = Vector3f(abs(sin(t / 1)), abs(sin(t / 3)), abs(sin(t / 2)))
+        //body.render(staticShader)
 
         spotLight.bind(staticShader, "mCycleSpot", camera.getCalculateViewMatrix())
     }
 
     fun update(dt: Float, t: Float) {
-        if(window.getKeyState(GLFW_KEY_W)) {
-            mCycle.translateLocal(Vector3f(0.0f, 0.0f, -5 * dt))
+        if(window.getKeyState(GLFW_KEY_W))
+            body.translateLocal(Vector3f(0.0f, 0.0f, -5 * dt))
 
-            if(window.getKeyState(GLFW_KEY_A))
-                mCycle.rotateLocal(0.0f, 1 * dt, 0.0f)
+        if(window.getKeyState(GLFW_KEY_A))
+            body.rotateLocal(0.0f, 1 * dt, 0.0f)
 
-            if(window.getKeyState(GLFW_KEY_D))
-                mCycle.rotateLocal(0.0f, -1f * dt, 0.0f)
-        }
+        if(window.getKeyState(GLFW_KEY_D))
+            body.rotateLocal(0.0f, -1f * dt, 0.0f)
 
-        if(window.getKeyState(GLFW_KEY_S)){
-            mCycle.translateLocal(Vector3f(0.0f, 0.0f, 5 * dt))
-
-            if(window.getKeyState(GLFW_KEY_A))
-                mCycle.rotateLocal(0.0f, 1f * dt, 0.0f)
-
-            if(window.getKeyState(GLFW_KEY_D))
-                mCycle.rotateLocal(0.0f, -1f * dt, 0.0f)
-        }
+        if(window.getKeyState(GLFW_KEY_S))
+            body.translateLocal(Vector3f(0.0f, 0.0f, 5 * dt))
     }
 
     fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {}
@@ -155,7 +140,7 @@ class Scene(private val window: GameWindow) {
         oldMousePosY = ypos
 
         if (bool) {
-            camera.rotateAroundPoint(0.0f, -Math.toRadians(deltaX.toFloat() * 0.02f) ,0.0f, Vector3f(0.0f))
+            body.rotateAroundPoint(0.0f, -Math.toRadians(deltaX.toFloat() * 0.02f) ,0.0f, body.getPosition())
             camera.rotateLocal(-Math.toRadians(deltaY.toFloat() * 0.04f),0.0f, 0.0f)
         }
         bool = true

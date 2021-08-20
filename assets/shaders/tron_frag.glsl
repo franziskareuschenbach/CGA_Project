@@ -6,7 +6,6 @@ in struct VertexData
     vec3 position;
     vec2 texture;
     vec3 normal;
-    vec3 toPointLight;
     vec3 toSpotLight;
 } vertexData;
 
@@ -14,10 +13,6 @@ uniform sampler2D diff;
 uniform sampler2D emit;
 uniform sampler2D specular;
 uniform float shininess;
-
-//PointLight
-uniform vec3 mCyclePointLightCol;
-uniform vec3 mCyclePointLightAttParam;
 
 //SpotLight
 uniform vec3 mCycleSpotLightCol;
@@ -35,16 +30,10 @@ out vec4 color;
 vec3 diffSpec(vec3 normale, vec3 lightDir, vec3 viewDir, vec3 diff, vec3 spec, float shini){
     vec3 diffuse = diff * max(dot(normale,lightDir), 0.0f);     //Diffuse Farbe * Skalarprodukt von Normale und LichtPos, oder 0.0
 
-    //Phong
-    //vec3 reflectDir = reflect(-lightDir,normale);             //reflection direction
-    //float cosb = max(dot(viewDir, reflectDir), 0.0f);         //Skalarprodukt von Position und reflection direction
-    //vec3 specular = spec * pow(cosb, shini);                  //Speculare Farbe * cosb^shini
-
     //Blinn-Phong
     vec3 halfwayDir = normalize(lightDir + viewDir);
     float specular = pow(max(dot(normale, halfwayDir), 0.0f),16.0f);
 
-    //return diffuse + specular * spec;
 
     return diffuse + specular;
 }
@@ -72,9 +61,6 @@ void main(){
     vec3 normals = normalize(vertexData.normal);
     vec3 positions = normalize(vertexData.position);
 
-    //PointLight
-    float lpLength = length(vertexData.toPointLight);
-    vec3 lp = normalize(vertexData.toPointLight);
     //SpotLight
     float spLength = length(vertexData.toSpotLight);
     vec3 sp = normalize(vertexData.toSpotLight);
@@ -87,8 +73,6 @@ void main(){
     vec3 emissive = emitCol * col;
 
     //Ambient Term
-    //PointLight
-    emissive += diffSpec(normals, lp, positions, diffCol, specCol, shininess) * pointLightIntensity(mCyclePointLightCol, lpLength, mCyclePointLightAttParam);
     //SpotLight
     emissive += diffSpec(normals, sp, positions, diffCol, specCol, shininess) * spotLightIntensity(mCycleSpotLightCol, spLength, sp, mCycleSpotLightDir);
 

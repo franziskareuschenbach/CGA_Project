@@ -11,8 +11,6 @@ uniform mat4 view_matrix;
 uniform mat4 projection_matrix;
 uniform vec2 tcMultiplier;
 
-uniform vec3 mCyclePointLightPos;
-
 uniform vec3 mCycleSpotLightPos;
 
 out struct VertexData
@@ -20,7 +18,6 @@ out struct VertexData
     vec3 position;
     vec2 texture;
     vec3 normal;
-    vec3 toPointLight;
     vec3 toSpotLight;
 } vertexData;
 
@@ -28,10 +25,6 @@ void main(){
     mat4 modelView = view_matrix * model_matrix;
     vec4 pos = modelView * vec4(position, 1.0f);
     vec4 norm = inverse(transpose(modelView)) * vec4(normal, 0.0f);
-
-    //PointLight
-    vec4 lightPos = view_matrix * vec4(mCyclePointLightPos, 1.0f); //Pos PointLight im ViewSpace
-    vertexData.toPointLight = (lightPos - pos).xyz;                 //Richtung der Lichtquelle im Camera Space
 
     //SpotLight
     vec4 sLightPos = view_matrix * vec4(mCycleSpotLightPos,1.0f);

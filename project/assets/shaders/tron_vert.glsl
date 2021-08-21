@@ -11,9 +11,11 @@ uniform mat4 view_matrix;
 uniform mat4 projection_matrix;
 uniform vec2 tcMultiplier;
 
-uniform vec3 mCyclePointLightPos;
+uniform vec3 roomPoint1LightPos;
+uniform vec3 roomPoint2LightPos;
+uniform vec3 roomPoint3LightPos;
 
-uniform vec3 mCycleSpotLightPos;
+uniform vec3 bodySpotLightPos;
 
 uniform vec3 cornerLightPos;
 uniform vec3 corner2LightPos;
@@ -26,7 +28,9 @@ out struct VertexData
     vec2 texture;
     vec3 normal;
     vec3 toSpotLight;
-    vec3 toPointLight;
+    vec3 toRoomPointLight1;
+    vec3 toRoomPointLight2;
+    vec3 toRoomPointLight3;
         vec3 toCornerLight;
         vec3 toCornerLight2;
         vec3 toCornerLight3;
@@ -39,12 +43,20 @@ void main(){
     vec4 norm = inverse(transpose(modelView)) * vec4(normal, 0.0f);
 
     //SpotLight
-    vec4 sLightPos = view_matrix * vec4(mCycleSpotLightPos,1.0f);
+    vec4 sLightPos = view_matrix * vec4(bodySpotLightPos,1.0f);
     vertexData.toSpotLight = (sLightPos - pos).xyz;
 
-    //PointLight
-    vec4 lightPos = view_matrix * vec4(mCyclePointLightPos, 1.0f); //Pos PointLight im ViewSpace
-    vertexData.toPointLight = (lightPos - pos).xyz;                 //Richtung der Lichtquelle im Camera Space
+    //RoomLight1
+    vec4 rLightPos1 = view_matrix * vec4(roomPoint1LightPos, 1.0f); //Pos PointLight im ViewSpace
+    vertexData.toRoomPointLight1 = (rLightPos1 - pos).xyz;                 //Richtung der Lichtquelle im Camera Space
+
+    //RoomLight2
+    vec4 rLightPos2 = view_matrix * vec4(roomPoint2LightPos, 1.0f); //Pos PointLight im ViewSpace
+    vertexData.toRoomPointLight2 = (rLightPos2 - pos).xyz;                 //Richtung der Lichtquelle im Camera Space
+
+    //RoomLight3
+    vec4 rLightPos3 = view_matrix * vec4(roomPoint3LightPos, 1.0f); //Pos PointLight im ViewSpace
+    vertexData.toRoomPointLight3 = (rLightPos3 - pos).xyz;                 //Richtung der Lichtquelle im Camera Space
 
     //Corner1
     vec4 cLightPos = view_matrix * vec4(cornerLightPos, 1.0f);

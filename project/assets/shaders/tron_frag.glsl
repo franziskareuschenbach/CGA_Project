@@ -7,7 +7,9 @@ in struct VertexData
     vec2 texture;
         vec3 normal;
         vec3 toSpotLight;
-        vec3 toPointLight;
+        vec3 toRoomPointLight1;
+        vec3 toRoomPointLight2;
+        vec3 toRoomPointLight3;
         vec3 toCornerLight;
         vec3 toCornerLight2;
         vec3 toCornerLight3;
@@ -20,14 +22,22 @@ uniform sampler2D specular;
 uniform float shininess;
 
 //SpotLight
-uniform vec3 mCycleSpotLightCol;
-uniform vec3 mCycleSpotLightAttParam;
-uniform vec2 mCycleSpotLightAngle;
-uniform vec3 mCycleSpotLightDir;
+uniform vec3 bodySpotLightCol;
+uniform vec3 bodySpotLightAttParam;
+uniform vec2 bodySpotLightAngle;
+uniform vec3 bodySpotLightDir;
 
-//PointLight
-uniform vec3 mCyclePointLightCol;
-uniform vec3 mCyclePointLightAttParam;
+//RoomLight1
+uniform vec3 roomPoint1LightCol;
+uniform vec3 roomPoint1LightAttParam;
+
+//RoomLight2
+uniform vec3 roomPoint2LightCol;
+uniform vec3 roomPoint2LightAttParam;
+
+//RoomLight3
+uniform vec3 roomPoint3LightCol;
+uniform vec3 roomPoint3LightAttParam;
 
 //Corner1
 uniform vec3 cornerLightCol;
@@ -71,22 +81,28 @@ vec3 pointLightIntensity(vec3 lightColor, float length, vec3 attP){
 
 vec3 spotLightIntensity(vec3 spotLightColor, float length, vec3 sp, vec3 spDir){
     float cosTheta = dot(sp, normalize(spDir));
-    float cosPhi = cos(mCycleSpotLightAngle.x);
-    float cosGamma = cos(mCycleSpotLightAngle.y);
+    float cosPhi = cos(bodySpotLightAngle.x);
+    float cosGamma = cos(bodySpotLightAngle.y);
 
     float intensity = (cosTheta - cosGamma)/(cosPhi - cosGamma);
     float cintensity = clamp(intensity, 0.0f, 1.0f);
 
-    return spotLightColor * cintensity * attenuate(length, mCycleSpotLightAttParam);
+    return spotLightColor * cintensity * attenuate(length, bodySpotLightAttParam);
 }
 
 void main(){
     vec3 normals = normalize(vertexData.normal);
     vec3 positions = normalize(vertexData.position);
 
-    //PointLight
-    float lpLength = length(vertexData.toPointLight);
-    vec3 lp = normalize(vertexData.toPointLight);
+    //RoomLight1
+    float lpLength = length(vertexData.toRoomPointLight1);
+    vec3 lp = normalize(vertexData.toRoomPointLight1);
+    //RoomLight2
+    float lp2Length = length(vertexData.toRoomPointLight2);
+    vec3 lp2 = normalize(vertexData.toRoomPointLight2);
+    //RoomLight3
+    float lp3Length = length(vertexData.toRoomPointLight3);
+    vec3 lp3 = normalize(vertexData.toRoomPointLight3);
     //SpotLight
     float spLength = length(vertexData.toSpotLight);
     vec3 sp = normalize(vertexData.toSpotLight);
@@ -112,17 +128,21 @@ void main(){
 
     //Ambient Term
     //SpotLight
-    emissive += diffSpec(normals, sp, positions, diffCol, specCol, shininess) * spotLightIntensity(mCycleSpotLightCol, spLength, sp, mCycleSpotLightDir);
-    //PointLight
-    emissive += diffSpec(normals, lp, positions, diffCol, specCol, shininess) * pointLightIntensity(mCyclePointLightCol, lpLength, mCyclePointLightAttParam);
+    emissive += diffSpec(normals, sp, positions, diffCol, specCol, shininess) * spotLightIntensity(bodySpotLightCol, spLength, sp, bodySpotLightDir);
+    //RoomLight1
+    emissive += diffSpec(normals, lp, positions, diffCol, specCol, shininess) * pointLightIntensity(roomPoint1LightCol, lpLength, roomPoint1LightAttParam);
+    //RoomLight2
+    emissive += diffSpec(normals, lp2, positions, diffCol, specCol, shininess) * pointLightIntensity(roomPoint2LightCol, lp2Length, roomPoint2LightAttParam);
+    //RoomLight3
+    emissive += diffSpec(normals, lp3, positions, diffCol, specCol, shininess) * pointLightIntensity(roomPoint3LightCol, lp3Length, roomPoint3LightAttParam);
     //Corner1
-    emissive += diffSpec(normals, cp, positions, diffCol, specCol, shininess) * pointLightIntensity(cornerLightCol, cpLength, cornerLightAttParam);
+    //emissive += diffSpec(normals, cp, positions, diffCol, specCol, shininess) * pointLightIntensity(cornerLightCol, cpLength, cornerLightAttParam);
     //Corner2
-    emissive += diffSpec(normals, cp2, positions, diffCol, specCol, shininess) * pointLightIntensity(corner2LightCol, cpLength2, corner2LightAttParam);
+    //emissive += diffSpec(normals, cp2, positions, diffCol, specCol, shininess) * pointLightIntensity(corner2LightCol, cpLength2, corner2LightAttParam);
     //Corner3
-    emissive += diffSpec(normals, cp3, positions, diffCol, specCol, shininess) * pointLightIntensity(corner3LightCol, cpLength3, corner3LightAttParam);
+    //emissive += diffSpec(normals, cp3, positions, diffCol, specCol, shininess) * pointLightIntensity(corner3LightCol, cpLength3, corner3LightAttParam);
     //Corner4
-    emissive += diffSpec(normals, cp4, positions, diffCol, specCol, shininess) * pointLightIntensity(corner4LightCol, cpLength4, corner4LightAttParam);
+    //emissive += diffSpec(normals, cp4, positions, diffCol, specCol, shininess) * pointLightIntensity(corner4LightCol, cpLength4, corner4LightAttParam);
 
 
     color = vec4(emissive,1.0);

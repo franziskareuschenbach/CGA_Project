@@ -15,14 +15,13 @@ import cga.framework.OBJLoader
 import org.joml.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL30.*
-import kotlin.math.*
 import kotlin.random.Random
 
 /**
  * Created by Fabian on 16.09.2017.
  */
 class Scene(private val window: GameWindow) {
-    private val staticShader: ShaderProgram
+    private var staticShader: ShaderProgram
 
     private var bodyMesh : Mesh
     private var body = Renderable()
@@ -30,11 +29,15 @@ class Scene(private val window: GameWindow) {
     private var camera = TronCamera()
 
     private var spotLight : SpotLight
-    private var pointLight : PointLight
+
     private var corner1 : PointLight
     private var corner2 : PointLight
     private var corner3 : PointLight
     private var corner4 : PointLight
+
+    private var roomLight1 : PointLight
+    private var roomLight2 : PointLight
+    private var roomLight3 : PointLight
 
     private var oldMousePosX = -1.0
     private var oldMousePosY = -1.0
@@ -52,7 +55,6 @@ class Scene(private val window: GameWindow) {
 
     private var raumBaseMoebelMesh : Mesh
     private var raumBaseMoebel = Renderable()
-
 
     /**Raum_links**/
     private var raumLMesh : Mesh
@@ -443,11 +445,15 @@ class Scene(private val window: GameWindow) {
 
         //Lights
         spotLight = SpotLight(Vector3f(0.0f, 0.0f, 0.0f), Vector3f(1.0f))
-        pointLight = PointLight(camera.getWorldPosition(), Vector3f(1.0f))
-        corner1 = PointLight(Vector3f(10.0f,4.0f,10.0f), Vector3f(1.0f, 0.0f, 1.0f), Vector3f(0.7f, 0.3f, 0.0f))
-        corner2 = PointLight(Vector3f(-10.0f,4.0f,10.0f), Vector3f(1.0f, 1.0f, 0.0f), Vector3f(0.7f, 0.3f, 0.0f))
-        corner3 = PointLight(Vector3f(10.0f,4.0f,-10.0f), Vector3f(0.0f, 1.0f, 1.0f), Vector3f(0.7f, 0.3f, 0.0f))
-        corner4 = PointLight(Vector3f(-10.0f,4.0f,-10.0f), Vector3f(1.0f, 0.5f, 0.5f), Vector3f(0.7f, 0.3f, 0.0f))
+        corner1 = PointLight(Vector3f(50.0f,4.0f,50.0f), Vector3f(1.0f, 0.0f, 1.0f), Vector3f(0.7f, 0.3f, 0.0f))
+        corner2 = PointLight(Vector3f(-50.0f,4.0f,50.0f), Vector3f(1.0f, 1.0f, 0.0f), Vector3f(0.7f, 0.3f, 0.0f))
+        corner3 = PointLight(Vector3f(50.0f,4.0f,-50.0f), Vector3f(0.0f, 1.0f, 1.0f), Vector3f(0.7f, 0.3f, 0.0f))
+        corner4 = PointLight(Vector3f(-50.0f,4.0f,-50.0f), Vector3f(1.0f, 0.5f, 0.5f), Vector3f(0.7f, 0.3f, 0.0f))
+        roomLight1 = PointLight(Vector3f(0.0f, 2.0f, 0.0f), Vector3f(1.0f))
+        roomLight2 = PointLight(Vector3f(-3.5f, 1.65f, 0.5f), Vector3f(1.0f))
+        roomLight3 = PointLight(Vector3f(3.5f, 1.65f, 0.5f), Vector3f(1.0f))
+
+
 
 
         //Transform
@@ -466,7 +472,6 @@ class Scene(private val window: GameWindow) {
 
 
         //Parent
-        pointLight.parent = body
         camera.parent = body
         spotLight.parent = camera
 
@@ -503,8 +508,10 @@ class Scene(private val window: GameWindow) {
         raumR.render(staticShader)
         raumRMoebel.render(staticShader)
 
-        pointLight.bind(staticShader, "mCyclePoint")
-        spotLight.bind(staticShader, "mCycleSpot", camera.getCalculateViewMatrix())
+        roomLight1.bind(staticShader, "roomPoint1")
+        roomLight2.bind(staticShader, "roomPoint2")
+        roomLight3.bind(staticShader, "roomPoint3")
+        spotLight.bind(staticShader, "bodySpot", camera.getCalculateViewMatrix())
         corner1.bind(staticShader, "corner")
         corner2.bind(staticShader, "corner2")
         corner3.bind(staticShader, "corner3")

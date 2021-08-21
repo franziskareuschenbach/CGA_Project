@@ -79,15 +79,15 @@ vec3 pointLightIntensity(vec3 lightColor, float length, vec3 attP){
     return lightColor * attenuate(length, attP);
 }
 
-vec3 spotLightIntensity(vec3 spotLightColor, float length, vec3 sp, vec3 spDir){
+vec3 spotLightIntensity(vec3 spotLightColor, float length, vec3 sp, vec3 spDir, float lightAngleX, float lightAngleY, vec3 attP){
     float cosTheta = dot(sp, normalize(spDir));
-    float cosPhi = cos(bodySpotLightAngle.x);
-    float cosGamma = cos(bodySpotLightAngle.y);
+    float cosPhi = cos(lightAngleX);
+    float cosGamma = cos(lightAngleY);
 
     float intensity = (cosTheta - cosGamma)/(cosPhi - cosGamma);
     float cintensity = clamp(intensity, 0.0f, 1.0f);
 
-    return spotLightColor * cintensity * attenuate(length, bodySpotLightAttParam);
+    return spotLightColor * cintensity * attenuate(length, attP);
 }
 
 void main(){
@@ -128,7 +128,7 @@ void main(){
 
     //Ambient Term
     //SpotLight
-    emissive += diffSpec(normals, sp, positions, diffCol, specCol, shininess) * spotLightIntensity(bodySpotLightCol, spLength, sp, bodySpotLightDir);
+    emissive += diffSpec(normals, sp, positions, diffCol, specCol, shininess) * spotLightIntensity(bodySpotLightCol, spLength, sp, bodySpotLightDir, bodySpotLightAngle.x, bodySpotLightAngle.y, bodySpotLightAttParam);
     //RoomLight1
     emissive += diffSpec(normals, lp, positions, diffCol, specCol, shininess) * pointLightIntensity(roomPoint1LightCol, lpLength, roomPoint1LightAttParam);
     //RoomLight2

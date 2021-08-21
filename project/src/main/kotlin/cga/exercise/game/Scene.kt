@@ -45,6 +45,8 @@ class Scene(private val window: GameWindow) {
     private var oldMousePosY = -1.0
     private var bool = false
 
+    private var timer = 30.0f
+
     val collisions = mutableListOf<Vector4f>()
 
     private var floorMesh : Mesh
@@ -76,11 +78,15 @@ class Scene(private val window: GameWindow) {
     private var skyMesh : Mesh
     private var sky = Renderable()
 
+    /**Balken**/
+    private var balkenMesh : Mesh
+    private var balken = Renderable()
+
     //scene setup
     init {
         staticShader = ShaderProgram("assets/shaders/tron_vert.glsl", "assets/shaders/tron_frag.glsl")
         ohneSpotShader = ShaderProgram("assets/shaders/ohneSpot_vert.glsl", "assets/shaders/ohneSpot_frag.glsl")
-        shader = staticShader
+        shader = ohneSpotShader
         //initial opengl state
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f); GLError.checkThrow()
         glEnable(GL_CULL_FACE); GLError.checkThrow()
@@ -157,6 +163,22 @@ class Scene(private val window: GameWindow) {
         val bodyObj = resBody.objects[0].meshes[0]
         bodyMesh = Mesh(bodyObj.vertexData, bodyObj.indexData, vertexAttributes)
         body.list.add(bodyMesh)
+
+        /**Balken generierung**/
+        val balkenTextureEmit = Texture2D("assets/textures/red.png", true)
+        val balkenTextureDiff = Texture2D("assets/textures/red.png",true)
+        val balkenTextureSpec = Texture2D("assets/textures/red.png",true)
+
+        balkenTextureEmit.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+        balkenTextureDiff.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+        balkenTextureSpec.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+
+        val balkenMaterial = Material(balkenTextureDiff, balkenTextureEmit, balkenTextureSpec, 60.0f, Vector2f(64.0f, 64.0f))
+
+        val resBalken = OBJLoader.loadOBJ("assets/models/balken.obj")
+        val balkenObj = resBalken.objects[0].meshes[0]
+        balkenMesh = Mesh(balkenObj.vertexData, balkenObj.indexData, vertexAttributes, balkenMaterial)
+        balken.list.add(balkenMesh)
 
         /**Generation der Wohnung**/
 
@@ -456,16 +478,13 @@ class Scene(private val window: GameWindow) {
         roomLight2 = PointLight(Vector3f(-3.5f, 1.65f, 0.5f), Vector3f(1.0f))
         roomLight3 = PointLight(Vector3f(3.5f, 1.65f, 0.5f), Vector3f(1.0f))
 
-
-
-
         //Transform
         spotLight.rotateLocal(Math.toRadians(-10.0f), Math.PI.toFloat(), 0.0f) //PI??
-
         body.translateLocal(Vector3f(0.0f, 1.2f, 0.0f))
+        balken.translateLocal(Vector3f(-1.142f, -0.345f, -0.3f))
+
 
         //Camera
-        camera.rotateLocal(Math.toRadians(-0.0f), 0.0f, 0.0f)              //-20 Grad in Bogenmaß umgerechnet-0.34f
         //camera.translateLocal(Vector3f(0.0f, 1.2f, 0.0f))
         camera.nearPlane = 0.0001f
 
@@ -477,6 +496,7 @@ class Scene(private val window: GameWindow) {
         //Parent
         camera.parent = body
         spotLight.parent = camera
+        balken.parent = camera
 
     }
 
@@ -489,7 +509,7 @@ class Scene(private val window: GameWindow) {
 
     fun render(dt: Float, t: Float) { //-> t == window.currentTime
         println(t)
-        setTimer(20f)
+        setTimer(timer)
 
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
@@ -501,6 +521,8 @@ class Scene(private val window: GameWindow) {
         floor.render(shader)
 
         sky.render(shader)
+
+        balken.render(shader)
 
         raumBase.render(shader)
         raumBaseMoebel.render(shader)
@@ -523,6 +545,10 @@ class Scene(private val window: GameWindow) {
         collision()
     }
 
+    fun zeitBerechnung(t : Float) : Float{
+        return 0.009f/t
+    }
+
     fun update(dt: Float, t: Float) {
         if(window.getKeyState(GLFW_KEY_W))
             body.translateLocal(Vector3f(0.0f, 0.0f, -2 * dt))
@@ -535,6 +561,8 @@ class Scene(private val window: GameWindow) {
 
         if(window.getKeyState(GLFW_KEY_S))
             body.translateLocal(Vector3f(0.0f, 0.0f, 2 * dt))
+
+        balken.translateLocal(Vector3f(zeitBerechnung(timer), 0.0f, 0.0f))
     }
 
     fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {

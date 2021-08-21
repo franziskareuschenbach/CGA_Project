@@ -22,6 +22,8 @@ import kotlin.random.Random
  */
 class Scene(private val window: GameWindow) {
     private var staticShader: ShaderProgram
+    private var ohneSpotShader : ShaderProgram
+    private var shader : ShaderProgram
 
     private var bodyMesh : Mesh
     private var body = Renderable()
@@ -77,7 +79,8 @@ class Scene(private val window: GameWindow) {
     //scene setup
     init {
         staticShader = ShaderProgram("assets/shaders/tron_vert.glsl", "assets/shaders/tron_frag.glsl")
-
+        ohneSpotShader = ShaderProgram("assets/shaders/ohneSpot_vert.glsl", "assets/shaders/ohneSpot_frag.glsl")
+        shader = staticShader
         //initial opengl state
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f); GLError.checkThrow()
         glEnable(GL_CULL_FACE); GLError.checkThrow()
@@ -490,32 +493,32 @@ class Scene(private val window: GameWindow) {
 
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-        staticShader.setUniform("col", Vector3f(0.4235f, 0.4745f, 0.5804f)) //Paynes Grey
+        shader.setUniform("col", Vector3f(0.4235f, 0.4745f, 0.5804f)) //Paynes Grey
 
-        camera.bind(staticShader)
+        camera.bind(shader)
 
-        body.render(staticShader)
-        floor.render(staticShader)
+        body.render(shader)
+        floor.render(shader)
 
-        sky.render(staticShader)
+        sky.render(shader)
 
-        raumBase.render(staticShader)
-        raumBaseMoebel.render(staticShader)
+        raumBase.render(shader)
+        raumBaseMoebel.render(shader)
 
-        raumL.render(staticShader)
-        raumLMoebel.render(staticShader)
+        raumL.render(shader)
+        raumLMoebel.render(shader)
 
-        raumR.render(staticShader)
-        raumRMoebel.render(staticShader)
+        raumR.render(shader)
+        raumRMoebel.render(shader)
 
-        roomLight1.bind(staticShader, "roomPoint1")
-        roomLight2.bind(staticShader, "roomPoint2")
-        roomLight3.bind(staticShader, "roomPoint3")
-        spotLight.bind(staticShader, "bodySpot", camera.getCalculateViewMatrix())
-        corner1.bind(staticShader, "corner")
-        corner2.bind(staticShader, "corner2")
-        corner3.bind(staticShader, "corner3")
-        corner4.bind(staticShader, "corner4")
+        roomLight1.bind(shader, "roomPoint1")
+        roomLight2.bind(shader, "roomPoint2")
+        roomLight3.bind(shader, "roomPoint3")
+        spotLight.bind(shader, "bodySpot", camera.getCalculateViewMatrix())
+        corner1.bind(shader, "corner")
+        corner2.bind(shader, "corner2")
+        corner3.bind(shader, "corner3")
+        corner4.bind(shader, "corner4")
 
         collision()
     }
@@ -535,7 +538,13 @@ class Scene(private val window: GameWindow) {
     }
 
     fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {
-
+        if (window.getKeyState(GLFW_KEY_L)) {
+            if (shader == staticShader) {
+                shader = ohneSpotShader
+            } else {
+                shader = staticShader
+            }
+        }
     }
 
     fun onMouseMove(xpos: Double, ypos: Double) {

@@ -1,5 +1,4 @@
-# Projektname
-Fügen Sie ihren Projektnamen hinzu
+# Arbeitsstress im Partyrausch
 
 # Teammitglieder
 

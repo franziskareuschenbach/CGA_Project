@@ -16,6 +16,7 @@ import org.joml.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL30.*
 import kotlin.random.Random
+import kotlin.math.*
 
 /**
  * Created by Fabian on 16.09.2017.
@@ -23,6 +24,7 @@ import kotlin.random.Random
 class Scene(private val window: GameWindow) {
     private var staticShader: ShaderProgram
     private var ohneSpotShader : ShaderProgram
+    private var raveLightShader : ShaderProgram
     private var shader : ShaderProgram
 
     private var bodyMesh : Mesh
@@ -86,6 +88,7 @@ class Scene(private val window: GameWindow) {
     init {
         staticShader = ShaderProgram("assets/shaders/tron_vert.glsl", "assets/shaders/tron_frag.glsl")
         ohneSpotShader = ShaderProgram("assets/shaders/ohneSpot_vert.glsl", "assets/shaders/ohneSpot_frag.glsl")
+        raveLightShader = ShaderProgram("assets/shaders/raveLight_vert.glsl", "assets/shaders/raveLight_frag.glsl")
         shader = ohneSpotShader
         //initial opengl state
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f); GLError.checkThrow()
@@ -470,10 +473,10 @@ class Scene(private val window: GameWindow) {
 
         //Lights
         spotLight = SpotLight(Vector3f(0.0f, 0.0f, 0.0f), Vector3f(1.0f))
-        corner1 = PointLight(Vector3f(50.0f,4.0f,50.0f), Vector3f(1.0f, 0.0f, 1.0f), Vector3f(0.7f, 0.3f, 0.0f))
-        corner2 = PointLight(Vector3f(-50.0f,4.0f,50.0f), Vector3f(1.0f, 1.0f, 0.0f), Vector3f(0.7f, 0.3f, 0.0f))
-        corner3 = PointLight(Vector3f(50.0f,4.0f,-50.0f), Vector3f(0.0f, 1.0f, 1.0f), Vector3f(0.7f, 0.3f, 0.0f))
-        corner4 = PointLight(Vector3f(-50.0f,4.0f,-50.0f), Vector3f(1.0f, 0.5f, 0.5f), Vector3f(0.7f, 0.3f, 0.0f))
+        corner1 = PointLight(Vector3f(20.0f,4.0f,20.0f), Vector3f(1.0f, 0.0f, 1.0f), Vector3f(0.7f, 0.3f, 0.0f))
+        corner2 = PointLight(Vector3f(-20.0f,4.0f,20.0f), Vector3f(1.0f, 1.0f, 0.0f), Vector3f(0.7f, 0.3f, 0.0f))
+        corner3 = PointLight(Vector3f(20.0f,4.0f,-20.0f), Vector3f(0.0f, 1.0f, 1.0f), Vector3f(0.7f, 0.3f, 0.0f))
+        corner4 = PointLight(Vector3f(-20.0f,4.0f,-20.0f), Vector3f(1.0f, 0.5f, 0.5f), Vector3f(0.7f, 0.3f, 0.0f))
         roomLight1 = PointLight(Vector3f(0.0f, 2.0f, 0.0f), Vector3f(1.0f))
         roomLight2 = PointLight(Vector3f(-3.5f, 1.65f, 0.5f), Vector3f(1.0f))
         roomLight3 = PointLight(Vector3f(3.5f, 1.65f, 0.5f), Vector3f(1.0f))
@@ -541,6 +544,11 @@ class Scene(private val window: GameWindow) {
         corner2.bind(shader, "corner2")
         corner3.bind(shader, "corner3")
         corner4.bind(shader, "corner4")
+        //RaveLights
+        corner4.lightCol = Vector3f(abs(tan(t / 1)), abs(tan(t / 2)), abs(tan(t / 3)))
+        corner3.lightCol = Vector3f(abs(tan(t / 1)), abs(tan(t / 2)), abs(tan(t / 3)))
+        corner2.lightCol = Vector3f(abs(tan(t / 1)), abs(tan(t / 2)), abs(tan(t / 3)))
+        corner1.lightCol = Vector3f(abs(tan(t / 1)), abs(tan(t / 2)), abs(tan(t / 3)))
 
         collision()
     }
@@ -571,6 +579,14 @@ class Scene(private val window: GameWindow) {
                 shader = ohneSpotShader
             } else {
                 shader = staticShader
+            }
+        }
+
+        if (window.getKeyState(GLFW_KEY_I)){
+            if (shader == staticShader || shader == ohneSpotShader){
+                shader = raveLightShader
+            } else {
+                shader = ohneSpotShader
             }
         }
     }

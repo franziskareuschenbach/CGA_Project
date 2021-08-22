@@ -17,10 +17,6 @@ uniform vec3 roomPoint3LightPos;
 
 uniform vec3 bodySpotLightPos;
 
-uniform vec3 cornerLightPos;
-uniform vec3 corner2LightPos;
-uniform vec3 corner3LightPos;
-uniform vec3 corner4LightPos;
 
 out struct VertexData
 {
@@ -31,10 +27,6 @@ out struct VertexData
     vec3 toRoomPointLight1;
     vec3 toRoomPointLight2;
     vec3 toRoomPointLight3;
-        vec3 toCornerLight;
-        vec3 toCornerLight2;
-        vec3 toCornerLight3;
-        vec3 toCornerLight4;
 } vertexData;
 
 void main(){
@@ -58,21 +50,6 @@ void main(){
     vec4 rLightPos3 = view_matrix * vec4(roomPoint3LightPos, 1.0f); //Pos PointLight im ViewSpace
     vertexData.toRoomPointLight3 = (rLightPos3 - pos).xyz;                 //Richtung der Lichtquelle im Camera Space
 
-    //Corner1
-    vec4 cLightPos = view_matrix * vec4(cornerLightPos, 1.0f);
-    vertexData.toCornerLight = (cLightPos - pos).xyz;
-
-    //Corner2
-    vec4 cLightPos2 = view_matrix * vec4(corner2LightPos, 1.0f);
-    vertexData.toCornerLight2 = (cLightPos2 - pos).xyz;
-
-    //Corner3
-    vec4 cLightPos3 = view_matrix * vec4(corner3LightPos, 1.0f);
-    vertexData.toCornerLight3 = (cLightPos3 - pos).xyz;
-
-    //Corner4
-    vec4 cLightPos4 = view_matrix * vec4(corner4LightPos, 1.0f);
-    vertexData.toCornerLight4 = (cLightPos4 - pos).xyz;
 
     gl_Position =projection_matrix * pos/*view_matrix * model_matrix * vec4(position, 1.0f)*/;
 

@@ -9,9 +9,9 @@ import cga.exercise.components.light.PointLight
 import cga.exercise.components.light.SpotLight
 import cga.exercise.components.shader.ShaderProgram
 import cga.exercise.components.texture.Texture2D
-import cga.framework.GLError
-import cga.framework.GameWindow
-import cga.framework.OBJLoader
+import cga.framework.*
+//import cga.framework.GameWindow
+//import cga.framework.OBJLoader
 import org.joml.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL30.*
@@ -49,10 +49,42 @@ class Scene(private val window: GameWindow) {
 
     private var timer = 30.0f
 
-    val collisions = mutableListOf<Vector4f>()
+    private val collisions = mutableListOf<Vector4f>()
+    private val interactionAreas = mutableListOf<Vector4f>()
+
+    private var currInteraction = 0
+    private val checklists = mutableListOf<Renderable>()
+
+    private var vertexAttributes = arrayOf<VertexAttribute>()
+
 
     private var floorMesh : Mesh
     private var floor = Renderable()
+
+    private var interactMesh : Mesh
+    private var interact = Renderable()
+
+    private var doorMesh : Mesh
+    private var door = Renderable()
+
+    private var checklistRBMesh : Mesh
+    private var checklistRB = Renderable()
+
+    private var checklistRRMesh : Mesh
+    private var checklistRR = Renderable()
+
+    private var checklistRLMesh : Mesh
+    private var checklistRL = Renderable()
+
+    private var checklistFinalMesh : Mesh
+    private var checklistFinal = Renderable()
+
+    private var winScreenMesh : Mesh
+    private var winScreen = Renderable()
+
+    private var failScreenMesh : Mesh
+    private var failScreen = Renderable()
+
 
     /**Raumgeneration**/
     /**Startraum**/
@@ -105,61 +137,39 @@ class Scene(private val window: GameWindow) {
         val attrNorm = VertexAttribute(2,3, GL_FLOAT, stride, 5 * 4)  //normal
         val vertexAttributes = arrayOf<VertexAttribute>(attrPos, attrTC, attrNorm)
 
-        /**Material_Floor**/
-        val floorTextureEmit = Texture2D("assets/textures/black.png", true)
-        val floorTextureDiff = Texture2D("assets/textures/floor_diff.png",true)
-        val floorTextureSpec = Texture2D("assets/textures/black.png",true)
+        /**Materials**/
+        val floorMaterial = loadMaterial("assets/textures/floor_diff.png")
+        val skyMaterial = loadMaterial("assets/textures/sky_diff.png")
+        val raumMaterial = loadMaterial("assets/textures/raum_diff.png")
+        val moebelMaterial = loadMaterial("assets/textures/white.png")
+        val interactMaterial = loadMaterial("assets/textures/interact.png")
+        val winMaterial = loadMaterial("assets/textures/text_win.png")
+        val failMaterial = loadMaterial("assets/textures/text_fail.png")
 
-        floorTextureEmit.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        floorTextureDiff.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        floorTextureSpec.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-
-        val floorMaterial = Material(floorTextureDiff, floorTextureEmit, floorTextureSpec, 60.0f, Vector2f(64.0f, 64.0f))
-
-        /**Floormesh**/
-        val resFloor = OBJLoader.loadOBJ("assets/models/floor.obj")
-        val floorObj = resFloor.objects[0].meshes[0]
-        floorMesh = Mesh(floorObj.vertexData, floorObj.indexData, vertexAttributes, floorMaterial)
+        /**Meshes**/
+        floorMesh = loadMesh("assets/models/floor.obj", floorMaterial)
         floor.list.add(floorMesh)
 
-        /**Material_Sky**/
-        val skyTextureEmit = Texture2D("assets/textures/white.png", true)
-        val skyTextureDiff = Texture2D("assets/textures/sky_diff.png",true)
-        val skyTextureSpec = Texture2D("assets/textures/black.png",true)
-
-        skyTextureEmit.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        skyTextureDiff.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        skyTextureSpec.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-
-        val skyMaterial = Material(skyTextureDiff, skyTextureEmit, skyTextureSpec, 60.0f, Vector2f(1.0f, 1.0f))
-
-        /**Skymesh**/
-        val resSky = OBJLoader.loadOBJ("assets/models/skycube.obj")
-        val skyObj = resSky.objects[0].meshes[0]
-        skyMesh = Mesh(skyObj.vertexData, skyObj.indexData, vertexAttributes, skyMaterial)
+        skyMesh = loadMesh("assets/models/skycube.obj", skyMaterial)
         sky.list.add(skyMesh)
 
-        /**Material_Raum**/
-        val raumTextureEmit = Texture2D("assets/textures/black.png", true)
-        val raumTextureDiff = Texture2D("assets/textures/raum_diff.png",true)
-        val raumTextureSpec = Texture2D("assets/textures/black.png",true)
+        interactMesh = loadMesh("assets/models/Interact.obj", interactMaterial)
+        interact.list.add(interactMesh)
 
-        raumTextureEmit.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        raumTextureDiff.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        raumTextureSpec.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+        doorMesh = loadMesh("assets/models/door.obj", interactMaterial)
+        door.list.add(doorMesh)
 
-        val raumMaterial = Material(raumTextureDiff, raumTextureEmit, raumTextureSpec, 60.0f, Vector2f(64.0f, 64.0f))
+        checklistRBMesh = loadMesh("assets/models/raumDEF.obj", moebelMaterial)
+        checklistRB.list.add(checklistRBMesh)
 
-        /**Material_Möbel**/
-        val moebelTextureEmit = Texture2D("assets/textures/black.png", true)
-        val moebelTextureDiff = Texture2D("assets/textures/white.png",true)
-        val moebelTextureSpec = Texture2D("assets/textures/black.png",true)
+        checklistFinalMesh = loadMesh("assets/models/raumDEF.obj", moebelMaterial)
+        checklistFinal.list.add(checklistFinalMesh)
 
-        moebelTextureEmit.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        moebelTextureDiff.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        moebelTextureSpec.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+        winScreenMesh = loadMesh("assets/models/screen.obj", winMaterial)
+        winScreen.list.add(winScreenMesh)
 
-        val moebelMaterial = Material(moebelTextureDiff, moebelTextureEmit, moebelTextureSpec, 60.0f, Vector2f(64.0f, 64.0f))
+        failScreenMesh = loadMesh("assets/models/screen.obj", failMaterial)
+        failScreen.list.add(failScreenMesh)
 
         /**Loads Body and create a mesh**/
         val resBody = OBJLoader.loadOBJ("assets/models/body.obj")
@@ -168,45 +178,31 @@ class Scene(private val window: GameWindow) {
         body.list.add(bodyMesh)
 
         /**Balken generierung**/
-        val balkenTextureEmit = Texture2D("assets/textures/red.png", true)
-        val balkenTextureDiff = Texture2D("assets/textures/red.png",true)
-        val balkenTextureSpec = Texture2D("assets/textures/red.png",true)
+        //val balkenTextureEmit = Texture2D("assets/textures/red.png", true)
+        //val balkenTextureDiff = Texture2D("assets/textures/red.png",true)
+        //val balkenTextureSpec = Texture2D("assets/textures/red.png",true)
+//
+        //balkenTextureEmit.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+        //balkenTextureDiff.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+        //balkenTextureSpec.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+//
+        //val balkenMaterial = Material(balkenTextureDiff, balkenTextureEmit, balkenTextureSpec, 60.0f, Vector2f(64.0f, 64.0f))
+        val balkenMaterial = loadMaterial("assets/textures/red.png")
 
-        balkenTextureEmit.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        balkenTextureDiff.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        balkenTextureSpec.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+        //val resBalken = OBJLoader.loadOBJ("assets/models/balken.obj")
+        //val balkenObj = resBalken.objects[0].meshes[0]
+        //balkenMesh = Mesh(balkenObj.vertexData, balkenObj.indexData, vertexAttributes, balkenMaterial)
+        //balken.list.add(balkenMesh)
 
-        val balkenMaterial = Material(balkenTextureDiff, balkenTextureEmit, balkenTextureSpec, 60.0f, Vector2f(64.0f, 64.0f))
-
-        val resBalken = OBJLoader.loadOBJ("assets/models/balken.obj")
-        val balkenObj = resBalken.objects[0].meshes[0]
-        balkenMesh = Mesh(balkenObj.vertexData, balkenObj.indexData, vertexAttributes, balkenMaterial)
+        balkenMesh = loadMesh("assets/models/balken.obj", balkenMaterial)
         balken.list.add(balkenMesh)
 
         /**Generation der Wohnung**/
 
+
         /**Startraum**/
-        val resRaumBase = OBJLoader.loadOBJ("assets/models/raumBase.obj")
-        val raumBaseObj = resRaumBase.objects[0].meshes[0]
-        raumBaseMesh = Mesh(raumBaseObj.vertexData, raumBaseObj.indexData, vertexAttributes, raumMaterial)
-        raumBase.list.add(raumBaseMesh)
 
-        val resRaumBaseMoebel = OBJLoader.loadOBJ("assets/models/raumBaseMoebel.obj")
-        val raumBaseMoebelObj = resRaumBaseMoebel.objects[0].meshes[0]
-        raumBaseMoebelMesh = Mesh(raumBaseMoebelObj.vertexData, raumBaseMoebelObj.indexData, vertexAttributes, moebelMaterial)
-        raumBaseMoebel.list.add(raumBaseMoebelMesh)
-
-        // Kollisionen des RaumBase
-        collisions.add(Vector4f(-2.25f, 2.25f, 2.25f, 2f))         //1
-        collisions.add(Vector4f(-2.25f, 0f, -2f, -2f))           //2
-        collisions.add(Vector4f(-2.25f, -2f, 2.25f, -2.25f))       //3
-        collisions.add(Vector4f(2f, 0f, 2.5f, -2f))             //4
-        collisions.add(Vector4f(-2.25f, 2f, -2f, 1f))            //5
-        collisions.add(Vector4f(2f, 2f, 2.25f, 1f))              //6
-
-        collisions.add(Vector4f(-2f, -1f, 2f, -2f))
-        collisions.add(Vector4f(-2f, 2f, -1f, 1f))
-        collisions.add(Vector4f(0f, 2f, 2f, 1f))
+        // Wohnungsseed
 
         val seeds = mutableListOf<Vector2i>(
             Vector2i(0, 1),
@@ -228,237 +224,179 @@ class Scene(private val window: GameWindow) {
 
         val genSeed = seeds[seedWohnung]
 
+
+        /**BaseRaum**/
+        raumBaseMesh = loadMesh("assets/models/raumBase.obj", raumMaterial)
+        raumBase.list.add(raumBaseMesh)
+
+        raumBaseMoebelMesh = loadMesh("assets/models/raumBaseMoebel.obj", moebelMaterial)
+        raumBaseMoebel.list.add(raumBaseMoebelMesh)
+
+
+
+
+        loadCollision(rBCollisions)
+
+        loadTaskRB()
+
         /**Raum_links**/
 
-        val resRaumL = OBJLoader.loadOBJ("assets/models/raumDEF.obj")
-        val raumLObj = resRaumL.objects[0].meshes[0]
-        raumLMesh = Mesh(raumLObj.vertexData, raumLObj.indexData, vertexAttributes, raumMaterial)
+        raumLMesh = loadMesh("assets/models/raumDEF.obj", raumMaterial)
         raumL.list.add(raumLMesh)
 
-        val resRaumLMoebel = OBJLoader.loadOBJ("assets/models/raumDEF.obj")
-        val raumLMoebelObj = resRaumLMoebel.objects[0].meshes[0]
-        raumLMoebelMesh = Mesh(raumLMoebelObj.vertexData, raumLMoebelObj.indexData, vertexAttributes, moebelMaterial)
+        raumLMoebelMesh = loadMesh("assets/models/raumDEF.obj", moebelMaterial)
         raumLMoebel.list.add(raumLMoebelMesh)
 
+        checklistRLMesh = loadMesh("assets/models/raumDEF.obj", moebelMaterial)
+        checklistRL.list.add(checklistRLMesh)
 
-        if (genSeed.y == 0){
-            val resRaumL0 = OBJLoader.loadOBJ("assets/models/raumL0.obj")
-            val raumL0Obj = resRaumL0.objects[0].meshes[0]
-            raumLMesh = Mesh(raumL0Obj.vertexData, raumL0Obj.indexData, vertexAttributes, raumMaterial)
+
+
+        if (genSeed.y == 0) {
+            raumLMesh = loadMesh("assets/models/raumL0.obj", raumMaterial)
             raumL.list.add(raumLMesh)
 
-            val resRaumL0Moebel = OBJLoader.loadOBJ("assets/models/raumL0Moebel.obj")
-            val raumL0MoebelObj = resRaumL0Moebel.objects[0].meshes[0]
-            raumLMoebelMesh = Mesh(raumL0MoebelObj.vertexData, raumL0MoebelObj.indexData, vertexAttributes, moebelMaterial)
+            raumLMoebelMesh = loadMesh("assets/models/raumL0Moebel.obj", moebelMaterial)
             raumLMoebel.list.add(raumLMoebelMesh)
 
-            collisions.add(Vector4f(-6.5f, 2.25f, -2.25f, 2f))
-            collisions.add(Vector4f(-6.5f, 2f, -6.25f, -2f))
-            collisions.add(Vector4f(-6.5f, -2f, -2.25f, -2.25f))
+            loadCollision(l0Collisions)
 
-            collisions.add(Vector4f(-5.25f, -1f, -3.25f, -2f))
-            collisions.add(Vector4f(-3.25f, 0f, -2.25f, -2f))
-            collisions.add(Vector4f(-3.25f, 2f, -2.25f, 1f))
-            collisions.add(Vector4f(-6.25f, 2f, -5.25f, 1f))
-            collisions.add(Vector4f(-6.25f, 0f, -5.25f, -2f))
+            loadTaskRL(l0Tasks)
         }
 
 
         else if (genSeed.y == 1){
-            val resRaumL1 = OBJLoader.loadOBJ("assets/models/raumL1.obj")
-            val raumL1Obj = resRaumL1.objects[0].meshes[0]
-            raumLMesh = Mesh(raumL1Obj.vertexData, raumL1Obj.indexData, vertexAttributes, raumMaterial)
+            raumLMesh = loadMesh("assets/models/raumL1.obj", raumMaterial)
             raumL.list.add(raumLMesh)
 
-            val resRaumL1Moebel = OBJLoader.loadOBJ("assets/models/raumL1Moebel.obj")
-            val raumL1MoebelObj = resRaumL1Moebel.objects[0].meshes[0]
-            raumLMoebelMesh = Mesh(raumL1MoebelObj.vertexData, raumL1MoebelObj.indexData, vertexAttributes, moebelMaterial)
+            raumLMoebelMesh = loadMesh("assets/models/raumL1Moebel.obj", moebelMaterial)
             raumLMoebel.list.add(raumLMoebelMesh)
 
-            collisions.add(Vector4f(-5.5f, 2.25f, -2.25f, 2f))
-            collisions.add(Vector4f(-5.5f, 2f, -5.25f, -2f))
-            collisions.add(Vector4f(-5.5f, -2f, -2.25f, -2.25f))
+            loadCollision(l1Collisions)
 
-            collisions.add(Vector4f(-5.25f, -1f, -4.25f, -2f))
-            collisions.add(Vector4f(-3.25f, -1f, -2.25f, -2f))
-            collisions.add(Vector4f(-5.25f, 2f, -2.25f, 1f))
+            loadTaskRL(l1Tasks)
         }
 
 
         else if (genSeed.y == 2){
-            val resRaumL2 = OBJLoader.loadOBJ("assets/models/raumL2.obj")
-            val raumL2Obj = resRaumL2.objects[0].meshes[0]
-            raumLMesh = Mesh(raumL2Obj.vertexData, raumL2Obj.indexData, vertexAttributes, raumMaterial)
+            raumLMesh = loadMesh("assets/models/raumL2.obj", raumMaterial)
             raumL.list.add(raumLMesh)
 
-            val resRaumL2Moebel = OBJLoader.loadOBJ("assets/models/raumL2Moebel.obj")
-            val raumL2MoebelObj = resRaumL2Moebel.objects[0].meshes[0]
-            raumLMoebelMesh = Mesh(raumL2MoebelObj.vertexData, raumL2MoebelObj.indexData, vertexAttributes, moebelMaterial)
+            raumLMoebelMesh = loadMesh("assets/models/raumL2Moebel.obj", moebelMaterial)
             raumLMoebel.list.add(raumLMoebelMesh)
 
-            collisions.add(Vector4f(-4.5f, 3.25f, -2f, 3f))
-            collisions.add(Vector4f(-4.5f, 3f, -4.25f, -1f))
-            collisions.add(Vector4f(-4.5f, -1f, -2.25f, -1.25f))
-            collisions.add(Vector4f(-2.25f, 3f, -2f, 2.25f))
+            loadCollision(l2Collisions)
 
-            collisions.add(Vector4f(-4.25f, 0f, -2.25f, -1f))
-            collisions.add(Vector4f(-4.25f, 3f, -2.25f, 2f))
+            loadTaskRL(l2Tasks)
         }
 
 
         else if (genSeed.y == 3){
-            val resRaumL3 = OBJLoader.loadOBJ("assets/models/raumL3.obj")
-            val raumL3Obj = resRaumL3.objects[0].meshes[0]
-            raumLMesh = Mesh(raumL3Obj.vertexData, raumL3Obj.indexData, vertexAttributes, raumMaterial)
+            raumLMesh = loadMesh("assets/models/raumL3.obj", raumMaterial)
             raumL.list.add(raumLMesh)
 
-            val resRaumL3Moebel = OBJLoader.loadOBJ("assets/models/raumL3Moebel.obj")
-            val raumL3MoebelObj = resRaumL3Moebel.objects[0].meshes[0]
-            raumLMoebelMesh = Mesh(raumL3MoebelObj.vertexData, raumL3MoebelObj.indexData, vertexAttributes, moebelMaterial)
+            raumLMoebelMesh = loadMesh("assets/models/raumL3Moebel.obj", moebelMaterial)
             raumLMoebel.list.add(raumLMoebelMesh)
 
-            collisions.add(Vector4f(-5.5f, 1.25f, -2.25f, 1f))
-            collisions.add(Vector4f(-5.5f, 1f, -5.25f, -1f))
-            collisions.add(Vector4f(-5.5f, -1f, -2.25f, -1.25f))
+            loadCollision(l3Collisions)
 
-            collisions.add(Vector4f(-5.25f, 0f, -2.25f, -1f))
+            loadTaskRL(l3Tasks)
         }
 
 
         else if (genSeed.y == 4){
-            val resRaumL4 = OBJLoader.loadOBJ("assets/models/raumL4.obj")
-            val raumL4Obj = resRaumL4.objects[0].meshes[0]
-            raumLMesh = Mesh(raumL4Obj.vertexData, raumL4Obj.indexData, vertexAttributes, raumMaterial)
+            raumLMesh = loadMesh("assets/models/raumL4.obj", raumMaterial)
             raumL.list.add(raumLMesh)
 
-            val resRaumL4Moebel = OBJLoader.loadOBJ("assets/models/raumL4Moebel.obj")
-            val raumL4MoebelObj = resRaumL4Moebel.objects[0].meshes[0]
-            raumLMoebelMesh = Mesh(raumL4MoebelObj.vertexData, raumL4MoebelObj.indexData, vertexAttributes, moebelMaterial)
+            raumLMoebelMesh = loadMesh("assets/models/raumL4Moebel.obj", moebelMaterial)
             raumLMoebel.list.add(raumLMoebelMesh)
 
-            collisions.add(Vector4f(-4.5f, 1.25f, -2.25f, 1f))
-            collisions.add(Vector4f(-4.5f, 1f, -4.25f, -1f))
-            collisions.add(Vector4f(-4.5f, -1f, -2.25f, -1.25f))
+            loadCollision(l4Collisions)
 
-            collisions.add(Vector4f(-4.25f, 1f, -3.25f, -1f))
+            loadTaskRL(l4Tasks)
         }
 
 
 
         /**Raum_rechts**/
 
-        val resRaumR = OBJLoader.loadOBJ("assets/models/raumDEF.obj")
-        val raumRObj = resRaumR.objects[0].meshes[0]
-        raumRMesh = Mesh(raumRObj.vertexData, raumRObj.indexData, vertexAttributes, raumMaterial)
+        raumRMesh = loadMesh("assets/models/raumDEF.obj", raumMaterial)
         raumR.list.add(raumRMesh)
 
-        val resRaumRMoebel = OBJLoader.loadOBJ("assets/models/raumDEF.obj")
-        val raumRMoebelObj = resRaumRMoebel.objects[0].meshes[0]
-        raumRMoebelMesh = Mesh(raumRMoebelObj.vertexData, raumRMoebelObj.indexData, vertexAttributes, raumMaterial)
-        raumRMoebel.list.add(raumRMesh)
+        raumRMoebelMesh = loadMesh("assets/models/raumDEF.obj", moebelMaterial)
+        raumRMoebel.list.add(raumRMoebelMesh)
+
+        checklistRRMesh = loadMesh("assets/models/raumDEF.obj", moebelMaterial)
+        checklistRR.list.add(checklistRRMesh)
 
 
 
         if (genSeed.x == 0){
-            val resRaumR0 = OBJLoader.loadOBJ("assets/models/raumR0.obj")
-            val raumR0Obj = resRaumR0.objects[0].meshes[0]
-            raumRMesh = Mesh(raumR0Obj.vertexData, raumR0Obj.indexData, vertexAttributes, raumMaterial)
+            raumRMesh = loadMesh("assets/models/raumR0.obj", raumMaterial)
             raumR.list.add(raumRMesh)
 
-            val resRaumR0Moebel = OBJLoader.loadOBJ("assets/models/raumR0Moebel.obj")
-            val raumR0MoebelObj = resRaumR0Moebel.objects[0].meshes[0]
-            raumRMoebelMesh = Mesh(raumR0MoebelObj.vertexData, raumR0MoebelObj.indexData, vertexAttributes, moebelMaterial)
+            raumRMoebelMesh = loadMesh("assets/models/raumR0Moebel.obj", moebelMaterial)
             raumRMoebel.list.add(raumRMoebelMesh)
 
-            collisions.add(Vector4f(2f, 3.25f, 6.5f, 3f))
-            collisions.add(Vector4f(6.25f, 3f, 6.5f, -1f))
-            collisions.add(Vector4f(2.25f, -1f, 6.5f, -1.25f))
-            collisions.add(Vector4f(2f, 3f, 2.25f, 2.25f))
+            loadCollision(r0Collisions)
 
-            collisions.add(Vector4f(2.25f, 0f, 3.25f, -1f))
-            collisions.add(Vector4f(4.25f, 0f, 6.25f, -1f))
-            collisions.add(Vector4f(3.25f, 3f, 5.25f, 1f))
+            loadTaskRR(r0Tasks)
         }
 
 
         else if (genSeed.x == 1){
-            val resRaumR1 = OBJLoader.loadOBJ("assets/models/raumR1.obj")
-            val raumR1Obj = resRaumR1.objects[0].meshes[0]
-            raumRMesh = Mesh(raumR1Obj.vertexData, raumR1Obj.indexData, vertexAttributes, raumMaterial)
+            raumRMesh = loadMesh("assets/models/raumR1.obj", raumMaterial)
             raumR.list.add(raumRMesh)
 
-            val resRaumR1Moebel = OBJLoader.loadOBJ("assets/models/raumR1Moebel.obj")
-            val raumR1MoebelObj = resRaumR1Moebel.objects[0].meshes[0]
-            raumRMoebelMesh = Mesh(raumR1MoebelObj.vertexData, raumR1MoebelObj.indexData, vertexAttributes, moebelMaterial)
+            raumRMoebelMesh = loadMesh("assets/models/raumR1Moebel.obj", moebelMaterial)
             raumRMoebel.list.add(raumRMoebelMesh)
 
-            collisions.add(Vector4f(2.25f, 1.25f, 6.5f, 1f))
-            collisions.add(Vector4f(6.25f, 1f, 6.5f, -2f))
-            collisions.add(Vector4f(2.25f, -2f, 6.5f, -2.25f))
+            loadCollision(r1Collisions)
 
-            collisions.add(Vector4f(3.25f, 0f, 5.25f, -2f))
+            loadTaskRR(r1Tasks)
         }
 
 
         else if (genSeed.x == 2){
-            val resRaumR2 = OBJLoader.loadOBJ("assets/models/raumR2.obj")
-            val raumR2Obj = resRaumR2.objects[0].meshes[0]
-            raumRMesh = Mesh(raumR2Obj.vertexData, raumR2Obj.indexData, vertexAttributes, raumMaterial)
+            raumRMesh = loadMesh("assets/models/raumR2.obj", raumMaterial)
             raumR.list.add(raumRMesh)
 
-            val resRaumR2Moebel = OBJLoader.loadOBJ("assets/models/raumR2Moebel.obj")
-            val raumR2MoebelObj = resRaumR2Moebel.objects[0].meshes[0]
-            raumRMoebelMesh = Mesh(raumR2MoebelObj.vertexData, raumR2MoebelObj.indexData, vertexAttributes, moebelMaterial)
+            raumRMoebelMesh = loadMesh("assets/models/raumR2Moebel.obj", moebelMaterial)
             raumRMoebel.list.add(raumRMoebelMesh)
 
-            collisions.add(Vector4f(2.25f, 2.25f, 4.5f, 2f))
-            collisions.add(Vector4f(4.25f, 2f, 4.5f, -2f))
-            collisions.add(Vector4f(2.25f, -2f, 4.5f, -2.25f))
+            loadCollision(r2Collisions)
 
-            collisions.add(Vector4f(2.25f, -1f, 4.25f, -2f))
-            collisions.add(Vector4f(2.25f, 2f, 4.25f, 1f))
+            loadTaskRR(r2Tasks)
         }
 
 
         else if (genSeed.x == 3){
-            val resRaumR3 = OBJLoader.loadOBJ("assets/models/raumR3.obj")
-            val raumR3Obj = resRaumR3.objects[0].meshes[0]
-            raumRMesh = Mesh(raumR3Obj.vertexData, raumR3Obj.indexData, vertexAttributes, raumMaterial)
+            raumRMesh = loadMesh("assets/models/raumR3.obj", raumMaterial)
             raumR.list.add(raumRMesh)
 
-            val resRaumR3Moebel = OBJLoader.loadOBJ("assets/models/raumR3Moebel.obj")
-            val raumR3MoebelObj = resRaumR3Moebel.objects[0].meshes[0]
-            raumRMoebelMesh = Mesh(raumR3MoebelObj.vertexData, raumR3MoebelObj.indexData, vertexAttributes, moebelMaterial)
+            raumRMoebelMesh = loadMesh("assets/models/raumR3Moebel.obj", moebelMaterial)
             raumRMoebel.list.add(raumRMoebelMesh)
 
-            collisions.add(Vector4f(2.25f, 2.25f, 4.5f, 2f))
-            collisions.add(Vector4f(4.25f, 2f, 4.5f, -1f))
-            collisions.add(Vector4f(2.25f, -1f, 4.5f, -1.25f))
+            loadCollision(r3Collisions)
 
-            collisions.add(Vector4f(2.25f, 0f, 4.25f, -1f))
-            collisions.add(Vector4f(3.25f, 2f, 4.25f, 1f))
+            loadTaskRR(r3Tasks)
         }
 
 
         else if (genSeed.x == 4){
-            val resRaumR4 = OBJLoader.loadOBJ("assets/models/raumR4.obj")
-            val raumR4Obj = resRaumR4.objects[0].meshes[0]
-            raumRMesh = Mesh(raumR4Obj.vertexData, raumR4Obj.indexData, vertexAttributes, raumMaterial)
+            raumRMesh = loadMesh("assets/models/raumR4.obj", raumMaterial)
             raumR.list.add(raumRMesh)
 
-            val resRaumR4Moebel = OBJLoader.loadOBJ("assets/models/raumR4Moebel.obj")
-            val raumR4MoebelObj = resRaumR4Moebel.objects[0].meshes[0]
-            raumRMoebelMesh = Mesh(raumR4MoebelObj.vertexData, raumR4MoebelObj.indexData, vertexAttributes, moebelMaterial)
+            raumRMoebelMesh = loadMesh("assets/models/raumR4Moebel.obj", moebelMaterial)
             raumRMoebel.list.add(raumRMoebelMesh)
 
-            collisions.add(Vector4f(2.25f, 2.25f, 4.5f, 2f))
-            collisions.add(Vector4f(4.25f, 2f, 4.5f, 0f))
-            collisions.add(Vector4f(2.25f, 0f, 4.5f, -0.25f))
+            loadCollision(r4Collisions)
 
-            collisions.add(Vector4f(3.25f, 2f, 4.25f, 0f))
+            loadTaskRR(r4Tasks)
         }
 
-
+        //ENDE
+        loadTaskFinal()
 
         //"Deadzones" für die Collider
         for(c in collisions)
@@ -488,13 +426,29 @@ class Scene(private val window: GameWindow) {
 
 
         //Camera
-        //camera.translateLocal(Vector3f(0.0f, 1.2f, 0.0f))
+        camera.translateLocal(Vector3f(0.0f, 1.2f, 0.0f))
         camera.nearPlane = 0.0001f
+        camera.farPlane = 100f
 
 
         //Sky
         sky.scaleLocal(Vector3f(12.0f))
 
+        //door
+        door.translateLocal(Vector3f(-0.5f, 0f, 2.125f))
+
+
+        //checklist
+
+        for (c in checklists)
+            c.translateGlobal(Vector3f(-0.14f, 0.03f, 0f))
+
+        interact.parent = camera
+        winScreen.parent = camera
+        failScreen.parent = camera
+
+        for(c in checklists)
+            c.parent = camera
 
         //Parent
         camera.parent = body
@@ -536,6 +490,8 @@ class Scene(private val window: GameWindow) {
         raumR.render(shader)
         raumRMoebel.render(shader)
 
+        door.render(shader)
+
         roomLight1.bind(shader, "roomPoint1")
         roomLight2.bind(shader, "roomPoint2")
         roomLight3.bind(shader, "roomPoint3")
@@ -551,6 +507,10 @@ class Scene(private val window: GameWindow) {
         corner1.lightCol = Vector3f(abs(tan(t / 1)), abs(tan(t / 2)), abs(tan(t / 3)))
 
         collision()
+        if(currInteraction != -1)
+            interaction()
+        if(currInteraction == -1)
+            winScreen.render(shader)
     }
 
     fun zeitBerechnung(t : Float) : Float{
@@ -626,6 +586,114 @@ class Scene(private val window: GameWindow) {
                     body.translateGlobal(Vector3f(0f, 0f, -pushDist))
             }
         }
+    }
+    fun interaction() {
+
+        checklists[currInteraction].render(shader)
+
+
+        if (body.getPosition().x > interactionAreas[currInteraction].x && body.getPosition().x < interactionAreas[currInteraction].z && body.getPosition().z < interactionAreas[currInteraction].y && body.getPosition().z > interactionAreas[currInteraction].w) {
+            interact.render(shader)
+            if(window.getKeyState(GLFW_KEY_E)) {
+                if(currInteraction != interactionAreas.size-1)
+                    currInteraction++
+                else {
+                    currInteraction = -1
+                }
+            }
+
+        }
+
+    }
+
+    fun loadMesh (path : String, tempMaterial : Material) : Mesh {
+        val resTemp = OBJLoader.loadOBJ(path)
+        val tempObj = resTemp.objects[0].meshes[0]
+        return Mesh(tempObj.vertexData, tempObj.indexData, vertexAttributes, tempMaterial)
+    }
+
+    fun loadCollision (collisionOfRoom : MutableList<Vector4f>) {
+        var runCollisions = 0
+        while (runCollisions < collisionOfRoom.size) {
+            collisions.add(collisionOfRoom[runCollisions])
+            runCollisions++
+        }
+    }
+
+    fun loadMaterial(texDiff : String) : Material {
+        val tempTextureEmit = Texture2D("assets/textures/black.png", true)
+        val tempTextureDiff = Texture2D(texDiff,true)
+        val tempTextureSpec = Texture2D("assets/textures/black.png",true)
+
+        tempTextureEmit.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+        tempTextureDiff.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+        tempTextureSpec.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+
+        return Material(tempTextureDiff, tempTextureEmit, tempTextureSpec, 60.0f, Vector2f(1.0f, 1.0f))
+    }
+
+    fun loadMaterial(texEmit : String, texDiff : String, texSpec : String) : Material {
+        val tempTextureEmit = Texture2D(texEmit, true)
+        val tempTextureDiff = Texture2D(texDiff,true)
+        val tempTextureSpec = Texture2D(texSpec,true)
+
+        tempTextureEmit.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+        tempTextureDiff.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+        tempTextureSpec.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+
+        return Material(tempTextureDiff, tempTextureEmit, tempTextureSpec, 60.0f, Vector2f(1.0f, 1.0f))
+    }
+
+    fun loadTaskRB(){
+        val seedTaskRB = Random.nextInt(0, 2)
+
+        val checklistRBMaterial = loadMaterial(rBTasks[seedTaskRB].first)
+
+        checklistRBMesh = loadMesh("assets/models/checklist.obj", checklistRBMaterial)
+        checklistRB.list.add(checklistRBMesh)
+
+        interactionAreas.add(rBTasks[seedTaskRB].second)
+
+        checklists.add(checklistRB)
+    }
+
+    fun loadTaskRL(taskList : MutableList<Pair<String, Vector4f>>){
+
+
+        val seedTaskL = Random.nextInt(0, 2)
+
+        val checklistRLMaterial = loadMaterial(taskList[seedTaskL].first)
+
+        checklistRLMesh = loadMesh("assets/models/checklist.obj", checklistRLMaterial)
+        checklistRL.list.add(checklistRLMesh)
+
+        interactionAreas.add(taskList[seedTaskL].second)
+
+        checklists.add(checklistRL)
+    }
+
+    fun loadTaskRR(taskList : MutableList<Pair<String, Vector4f>>){
+        val seedTaskR = Random.nextInt(0, 2)
+
+        val checklistRRMaterial = loadMaterial(taskList[seedTaskR].first)
+
+        checklistRRMesh = loadMesh("assets/models/checklist.obj", checklistRRMaterial)
+        checklistRR.list.add(checklistRRMesh)
+
+        interactionAreas.add(taskList[seedTaskR].second)
+
+        checklists.add(checklistRR)
+    }
+
+    fun loadTaskFinal() {
+        val checklistFinalMaterial = loadMaterial("assets/textures/text_zurArbeit.png")
+
+        checklistFinalMesh = loadMesh("assets/models/checklist.obj", checklistFinalMaterial)
+        checklistFinal.list.add(checklistFinalMesh)
+
+        interactionAreas.add(Vector4f(-1f, 2f, 0f, 1.5f))
+
+        checklists.add(checklistFinal)
     }
 
     fun cleanup() {

@@ -86,7 +86,7 @@ class Scene(private val window: GameWindow) {
 
     //scene setup
     init {
-        staticShader = ShaderProgram("assets/shaders/tron_vert.glsl", "assets/shaders/tron_frag.glsl")
+        staticShader = ShaderProgram("assets/shaders/mitSpot_vert.glsl", "assets/shaders/mitSpot_frag.glsl")
         ohneSpotShader = ShaderProgram("assets/shaders/ohneSpot_vert.glsl", "assets/shaders/ohneSpot_frag.glsl")
         raveLightShader = ShaderProgram("assets/shaders/raveLight_vert.glsl", "assets/shaders/raveLight_frag.glsl")
         shader = ohneSpotShader

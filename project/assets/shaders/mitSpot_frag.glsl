@@ -47,7 +47,6 @@ vec3 diffSpec(vec3 normale, vec3 lightDir, vec3 viewDir, vec3 diff, vec3 spec, f
     vec3 halfwayDir = normalize(lightDir + viewDir);
     float specular = pow(max(dot(normale, halfwayDir), 0.0f),16.0f);
 
-
     return diffuse + specular;
 }
 

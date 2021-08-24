@@ -39,19 +39,19 @@ void main(){
     vertexData.toSpotLight = (sLightPos - pos).xyz;
 
     //RoomLight1
-    vec4 rLightPos1 = view_matrix * vec4(roomPoint1LightPos, 1.0f); //Pos PointLight im ViewSpace
+    vec4 rLightPos1 = view_matrix * vec4(roomPoint1LightPos, 1.0f);         //Pos PointLight im ViewSpace
     vertexData.toRoomPointLight1 = (rLightPos1 - pos).xyz;                 //Richtung der Lichtquelle im Camera Space
 
     //RoomLight2
-    vec4 rLightPos2 = view_matrix * vec4(roomPoint2LightPos, 1.0f); //Pos PointLight im ViewSpace
+    vec4 rLightPos2 = view_matrix * vec4(roomPoint2LightPos, 1.0f);         //Pos PointLight im ViewSpace
     vertexData.toRoomPointLight2 = (rLightPos2 - pos).xyz;                 //Richtung der Lichtquelle im Camera Space
 
     //RoomLight3
-    vec4 rLightPos3 = view_matrix * vec4(roomPoint3LightPos, 1.0f); //Pos PointLight im ViewSpace
+    vec4 rLightPos3 = view_matrix * vec4(roomPoint3LightPos, 1.0f);         //Pos PointLight im ViewSpace
     vertexData.toRoomPointLight3 = (rLightPos3 - pos).xyz;                 //Richtung der Lichtquelle im Camera Space
 
 
-    gl_Position =projection_matrix * pos/*view_matrix * model_matrix * vec4(position, 1.0f)*/;
+    gl_Position =projection_matrix * pos;
 
     vertexData.position = -pos.xyz; //toCamera
     vertexData.texture = texCoor * tcMultiplier;

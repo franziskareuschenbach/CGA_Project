@@ -24,7 +24,7 @@ class Scene(private val window: GameWindow) {
 
 
     /**Shader**/
-    private val staticShader: ShaderProgram
+    private val mitSpotShader: ShaderProgram
     private var ohneSpotShader : ShaderProgram
     private var raveLightShader : ShaderProgram
     private var shader : ShaderProgram
@@ -54,11 +54,11 @@ class Scene(private val window: GameWindow) {
     private var checklistRBMesh : Mesh
     private var checklistRB = Renderable()
 
-    private var checklistRRMesh : Mesh
-    private var checklistRR = Renderable()
+    private var checklistRMesh : Mesh
+    private var checklistR = Renderable()
 
-    private var checklistRLMesh : Mesh
-    private var checklistRL = Renderable()
+    private var checklistLMesh : Mesh
+    private var checklistL = Renderable()
 
     private var checklistFinalMesh : Mesh
     private var checklistFinal = Renderable()
@@ -141,12 +141,9 @@ class Scene(private val window: GameWindow) {
     private var timer2 = timer
 
 
-
-
-
     //scene setup
     init {
-        staticShader = ShaderProgram("assets/shaders/mitSpot_vert.glsl", "assets/shaders/mitSpot_frag.glsl")                //unterschiedliche Shader werden geladen
+        mitSpotShader = ShaderProgram("assets/shaders/mitSpot_vert.glsl", "assets/shaders/mitSpot_frag.glsl")                //unterschiedliche Shader werden geladen
         ohneSpotShader = ShaderProgram("assets/shaders/ohneSpot_vert.glsl", "assets/shaders/ohneSpot_frag.glsl")
         raveLightShader = ShaderProgram("assets/shaders/raveLight_vert.glsl", "assets/shaders/raveLight_frag.glsl")
         shader = ohneSpotShader
@@ -158,8 +155,6 @@ class Scene(private val window: GameWindow) {
         glCullFace(GL_BACK); GLError.checkThrow()
         glEnable(GL_DEPTH_TEST); GLError.checkThrow()
         glDepthFunc(GL_LESS); GLError.checkThrow()
-
-
 
 
         /**Create the mesh**/
@@ -179,6 +174,7 @@ class Scene(private val window: GameWindow) {
         val winMaterial = loadMaterial("assets/textures/text_win.png")
         val failMaterial = loadMaterial("assets/textures/text_fail.png")
         val barMaterial = loadMaterial("assets/textures/red.png", "assets/textures/red.png", "assets/textures/red.png")
+
 
         /**Meshes**/
         floorMesh = loadMesh("assets/models/floor.obj", floorMaterial)                                                                          //Meshes werden mit ausgelagerter Funktion "loadMesh" erstellt
@@ -212,14 +208,12 @@ class Scene(private val window: GameWindow) {
         failScreen.list.add(failScreenMesh)
 
 
-
-
         /**Generierung der Wohnung**/
 
         /**Seed**/
 
         val seeds = mutableListOf<Vector2i>(                        //Liste aus logischen Seeds; jeder hat ein Schlaf- und ein Badezimmer
-            Vector2i(0, 1),
+            Vector2i(0, 1),                                   //(rechter Raum, linker Raum)
             Vector2i(0, 2),
             Vector2i(0, 3),
             Vector2i(1, 1),
@@ -234,9 +228,7 @@ class Scene(private val window: GameWindow) {
             Vector2i(3, 4)
         )
 
-        val seedWohnung = Random.nextInt(0, 13)         //Wohnnungsseed wird zufällig ausgewählt
-
-        val genSeed = seeds[seedWohnung]
+        val genSeed = seeds[Random.nextInt(0, 13)]      //Wohnnungsseed wird zufällig ausgewählt
 
 
         /**BaseRaum**/
@@ -261,8 +253,8 @@ class Scene(private val window: GameWindow) {
         roomLFurnitureMesh = loadMesh("assets/models/raumDEF.obj", furnitureMaterial)
         roomLFurniture.list.add(roomLFurnitureMesh)
 
-        checklistRLMesh = loadMesh("assets/models/raumDEF.obj", furnitureMaterial)
-        checklistRL.list.add(checklistRLMesh)
+        checklistLMesh = loadMesh("assets/models/raumDEF.obj", furnitureMaterial)
+        checklistL.list.add(checklistLMesh)
 
 
 
@@ -331,7 +323,6 @@ class Scene(private val window: GameWindow) {
         }
 
 
-
         /**Raum_rechts**/
 
         roomRMesh = loadMesh("assets/models/raumDEF.obj", roomMaterial)
@@ -340,8 +331,8 @@ class Scene(private val window: GameWindow) {
         roomRFurnitureMesh = loadMesh("assets/models/raumDEF.obj", furnitureMaterial)
         RoomRFurniture.list.add(roomRFurnitureMesh)
 
-        checklistRRMesh = loadMesh("assets/models/raumDEF.obj", furnitureMaterial)
-        checklistRR.list.add(checklistRRMesh)
+        checklistRMesh = loadMesh("assets/models/raumDEF.obj", furnitureMaterial)
+        checklistR.list.add(checklistRMesh)
 
 
 
@@ -434,12 +425,12 @@ class Scene(private val window: GameWindow) {
         roomLight2 = PointLight(Vector3f(-3.5f, 1.65f, 0.5f), Vector3f(1.0f))
         roomLight3 = PointLight(Vector3f(3.5f, 1.65f, 0.5f), Vector3f(1.0f))
 
-        spotLight.rotateLocal(Math.toRadians(-10.0f), Math.PI.toFloat(), 0.0f) //PI??
+        spotLight.rotateLocal(Math.toRadians(-10.0f), Math.PI.toFloat(), 0.0f)
 
         camera.nearPlane = 0.0001f                                  //Die Near-Plane wird kleiner definiert, da man sonst durch Wände sehen könnte
 
 
-        sky.scaleLocal(Vector3f(12.0f))                         //Die Skybox wird skaliert
+        sky.scaleLocal(Vector3f(12.0f))                         //Die "Skybox" wird skaliert
 
 
         door.translateLocal(Vector3f(-0.5f, 0f, 2.125f))
@@ -509,7 +500,7 @@ class Scene(private val window: GameWindow) {
 
         if(currInteraction == -1) {
             winScreen.render(shader)    //Der Win-Screen wird gerendert unter der Bedingung, dass die letzte Interaktion getätigt wurde
-            timer = 100f
+            timer = 100f                //"Deaktivierung" des Timers
 
             if(window.currentTime >= timer2 + 2f)
                 cleanup()
@@ -541,18 +532,18 @@ class Scene(private val window: GameWindow) {
     fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {
 
         if (window.getKeyState(GLFW_KEY_L)) {                                   //Die anderen Shader können aktiviert werden
-            if (shader == staticShader) {
+            if (shader == mitSpotShader) {
                 shader = ohneSpotShader
             }
             else
             {
-                shader = staticShader
+                shader = mitSpotShader
             }
         }
 
         if (window.getKeyState(GLFW_KEY_I)){
 
-            if (shader == staticShader || shader == ohneSpotShader){
+            if (shader == mitSpotShader || shader == ohneSpotShader){
                 shader = raveLightShader
             }
             else
@@ -573,7 +564,7 @@ class Scene(private val window: GameWindow) {
         oldMousePosY = ypos
 
         if (bool) {
-            body.rotateAroundPoint(0.0f, -Math.toRadians(deltaX.toFloat() * 0.04f) ,0.0f, camera.getWorldPosition())
+            body.rotateAroundPoint(0.0f, -Math.toRadians(deltaX.toFloat() * 0.04f) ,0.0f, body.getWorldPosition())
             camera.rotateLocal(-Math.toRadians(deltaY.toFloat() * 0.08f),0.0f, 0.0f)
         }
         bool = true
@@ -606,10 +597,14 @@ class Scene(private val window: GameWindow) {
 
     fun interaction() {
 
-        checklists[currInteraction].render(shader)      //Die Interaktionsabfrage funktioniert ähnlich der Kollisionsabfrage; In der separaten Klasse "RoomData" sind Aufgaben und ihre Interaktionsfelder definiert. Befindet sich der Spieler in
-                                                        //dem Interaktionsfeld der aktuellen Aufgabe, so wird der Interaktionsprompt gerendert. Wenn der Spieler nun "E" drückt wird die Aufgabe erledigt und die nächste wird gezeigt.
-                                                        //Wenn der Spieler die letzte Aufgabe erfüllt hat wird der "currInteraction"-Zähler auf -1 gesetzt um zu signalisieren, dass das Spiel zu Ende ist.
-        if (body.getPosition().x > interactionAreas[currInteraction].x && body.getPosition().x < interactionAreas[currInteraction].z && body.getPosition().z < interactionAreas[currInteraction].y && body.getPosition().z > interactionAreas[currInteraction].w) {
+        checklists[currInteraction].render(shader)      //Die Interaktionsabfrage funktioniert ähnlich der Kollisionsabfrage; In der separaten Klasse "RoomData" sind Aufgaben und
+                                                        //ihre Interaktionsfelder definiert. Befindet sich der Spieler in dem Interaktionsfeld der aktuellen Aufgabe, so wird der
+                                                        //Interaktionsprompt gerendert. Wenn der Spieler nun "E" drückt wird die Aufgabe erledigt und die nächste wird gezeigt.
+                                                        //Wenn der Spieler die letzte Aufgabe erfüllt hat wird der "currInteraction"-Zähler auf -1 gesetzt um zu signalisieren,
+                                                        //dass das Spiel zu Ende ist.
+        if (body.getPosition().x > interactionAreas[currInteraction].x && body.getPosition().x < interactionAreas[currInteraction].z
+            && body.getPosition().z < interactionAreas[currInteraction].y && body.getPosition().z > interactionAreas[currInteraction].w) {
+
             interact.render(shader)
             if(window.getKeyState(GLFW_KEY_E)) {
                 if(currInteraction != interactionAreas.size-1)
@@ -683,12 +678,12 @@ class Scene(private val window: GameWindow) {
 
         val checklistRLMaterial = loadMaterial(taskList[seedTaskL].first)
 
-        checklistRLMesh = loadMesh("assets/models/checklist.obj", checklistRLMaterial)
-        checklistRL.list.add(checklistRLMesh)
+        checklistLMesh = loadMesh("assets/models/checklist.obj", checklistRLMaterial)
+        checklistL.list.add(checklistLMesh)
 
         interactionAreas.add(taskList[seedTaskL].second)
 
-        checklists.add(checklistRL)
+        checklists.add(checklistL)
     }
 
     fun loadTaskRR(taskList : MutableList<Pair<String, Vector4f>>){                         //ausgelagerte Funktion zum Laden von Aufgaben; nur zur Ordnung erstellt
@@ -697,12 +692,12 @@ class Scene(private val window: GameWindow) {
 
         val checklistRRMaterial = loadMaterial(taskList[seedTaskR].first)
 
-        checklistRRMesh = loadMesh("assets/models/checklist.obj", checklistRRMaterial)
-        checklistRR.list.add(checklistRRMesh)
+        checklistRMesh = loadMesh("assets/models/checklist.obj", checklistRRMaterial)
+        checklistR.list.add(checklistRMesh)
 
         interactionAreas.add(taskList[seedTaskR].second)
 
-        checklists.add(checklistRR)
+        checklists.add(checklistR)
     }
 
     fun loadTaskFinal() {                                                                   //ausgelagerte Funktion zum Laden von Aufgaben; nur zur Ordnung erstellt

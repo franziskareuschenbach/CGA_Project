@@ -51,8 +51,8 @@ class Scene(private val window: GameWindow) {
 
 
     /**Meshes_Checklist**/
-    private var checklistRBMesh : Mesh
-    private var checklistRB = Renderable()
+    private var checklistBMesh : Mesh
+    private var checklistB = Renderable()
 
     private var checklistRMesh : Mesh
     private var checklistR = Renderable()
@@ -195,8 +195,8 @@ class Scene(private val window: GameWindow) {
         bodyMesh = loadMesh("assets/models/body.obj", barMaterial)
         body.list.add(bodyMesh)
 
-        checklistRBMesh = loadMesh("assets/models/raumDEF.obj", furnitureMaterial)
-        checklistRB.list.add(checklistRBMesh)
+        checklistBMesh = loadMesh("assets/models/raumDEF.obj", furnitureMaterial)
+        checklistB.list.add(checklistBMesh)
 
         checklistFinalMesh = loadMesh("assets/models/raumDEF.obj", furnitureMaterial)
         checklistFinal.list.add(checklistFinalMesh)
@@ -425,20 +425,19 @@ class Scene(private val window: GameWindow) {
         roomLight2 = PointLight(Vector3f(-3.5f, 1.65f, 0.5f), Vector3f(1.0f))
         roomLight3 = PointLight(Vector3f(3.5f, 1.65f, 0.5f), Vector3f(1.0f))
 
+
+        /**Transformations**/
         spotLight.rotateLocal(Math.toRadians(-10.0f), Math.PI.toFloat(), 0.0f)
 
         camera.nearPlane = 0.0001f                                  //Die Near-Plane wird kleiner definiert, da man sonst durch Wände sehen könnte
 
-
         sky.scaleLocal(Vector3f(12.0f))                         //Die "Skybox" wird skaliert
-
 
         door.translateLocal(Vector3f(-0.5f, 0f, 2.125f))
 
         bar.translateLocal(Vector3f(-1.142f, -0.345f, -0.3f))
 
         body.translateLocal(Vector3f(0.0f, 1.2f, 0.0f))
-
 
         for (c in checklists) {                                 //Die Checkliste wird an die richtige Position bewegt und an die Kamera gebunden
             c.translateGlobal(Vector3f(-0.14f, 0.03f, 0f))
@@ -572,8 +571,8 @@ class Scene(private val window: GameWindow) {
 
     fun collision() {
 
-        val pushDist = 0.004f   //definiert die Distanz, die der Spieler bei einer Kollision zurückgeschoben wird; muss bei schwächerer Hardware erhöht werden
-        val collisionBuffer = 0.25f     //definiert die Dicke der Kollisionsfelder
+        val pushDist = 0.004f               //definiert die Distanz, die der Spieler bei einer Kollision zurückgeschoben wird; muss bei schwächerer Hardware erhöht werden
+        val collisionBuffer = 0.25f         //definiert die Dicke der Kollisionsfelder
 
         for(c in collisions) {              //Die Kollisionsabfrage greift auf die Kollisionsdefinitionen in der separaten Klasse "RoomData" zu
             if (body.getPosition().x > c.x && body.getPosition().x < c.z && body.getPosition().z < c.y && body.getPosition().z > c.w)   //Die Kollisionsabfrage funktioniert in 2D; um jede Wand und jedes Möbelstück wird ein Rechteck aufgespannt,
@@ -590,7 +589,6 @@ class Scene(private val window: GameWindow) {
                 if(body.getPosition().z > c.w && body.getPosition().z < (c.w + collisionBuffer))
                     body.translateGlobal(Vector3f(0f, 0f, -pushDist))
             }
-
         }
     }
 
@@ -664,12 +662,12 @@ class Scene(private val window: GameWindow) {
 
         val checklistRBMaterial = loadMaterial(rBTasks[seedTaskRB].first)
 
-        checklistRBMesh = loadMesh("assets/models/checklist.obj", checklistRBMaterial)
-        checklistRB.list.add(checklistRBMesh)
+        checklistBMesh = loadMesh("assets/models/checklist.obj", checklistRBMaterial)
+        checklistB.list.add(checklistBMesh)
 
         interactionAreas.add(rBTasks[seedTaskRB].second)
 
-        checklists.add(checklistRB)
+        checklists.add(checklistB)
     }
 
     fun loadTaskRL(taskList : MutableList<Pair<String, Vector4f>>){                         //ausgelagerte Funktion zum Laden von Aufgaben; nur zur Ordnung erstellt
